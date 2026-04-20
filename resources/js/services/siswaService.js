@@ -11,7 +11,7 @@ export default {
   },
 
   deleteSiswa(id) {
-    return axios.delete('/siswa/' + id)
+    return axios.delete(`/siswa/${id}`)
   }
 
 }

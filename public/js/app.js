@@ -22728,9 +22728,43 @@ __webpack_require__.r(__webpack_exports__);
       kelas = _useSiswa.kelas,
       search = _useSiswa.search,
       kelas_id = _useSiswa.kelas_id,
+      page = _useSiswa.page,
       loading = _useSiswa.loading,
       getSiswa = _useSiswa.getSiswa,
       deleteSiswa = _useSiswa.deleteSiswa;
+    var changePage = function changePage(p) {
+      page.value = p;
+      getSiswa();
+    };
+    var rowNumberStart = (0,vue__WEBPACK_IMPORTED_MODULE_3__.computed)(function () {
+      return ((siswas.value.current_page || 1) - 1) * (siswas.value.per_page || 10) + 1;
+    });
+    var pageNumbers = (0,vue__WEBPACK_IMPORTED_MODULE_3__.computed)(function () {
+      var total = siswas.value.last_page || 1;
+      var current = siswas.value.current_page || 1;
+      var delta = 2;
+      var start = Math.max(1, current - delta);
+      var end = Math.min(total, current + delta);
+      var pages = [];
+      for (var i = start; i <= end; i += 1) {
+        pages.push(i);
+      }
+      return pages;
+    });
+    var goToPage = function goToPage(targetPage) {
+      if (targetPage < 1 || targetPage > (siswas.value.last_page || 1)) return;
+      if (targetPage === page.value) return;
+      page.value = targetPage;
+      getSiswa();
+    };
+    var onSearchInput = function onSearchInput() {
+      page.value = 1;
+      getSiswa();
+    };
+    var onKelasChange = function onKelasChange() {
+      page.value = 1;
+      getSiswa();
+    };
 
     // handle delete dengan sweetalert
     var hapus = function hapus(id) {
@@ -22749,9 +22783,15 @@ __webpack_require__.r(__webpack_exports__);
       kelas: kelas,
       search: search,
       kelas_id: kelas_id,
+      page: page,
       loading: loading,
       getSiswa: getSiswa,
       hapus: hapus,
+      rowNumberStart: rowNumberStart,
+      pageNumbers: pageNumbers,
+      goToPage: goToPage,
+      onSearchInput: onSearchInput,
+      onKelasChange: onKelasChange,
       showModal: showModal,
       selectedSiswa: selectedSiswa,
       tambah: tambah,
@@ -23192,10 +23232,26 @@ var _hoisted_14 = {
 };
 var _hoisted_15 = ["onClick"];
 var _hoisted_16 = ["onClick"];
+var _hoisted_17 = {
+  key: 2,
+  "class": "d-flex justify-content-end mt-3"
+};
+var _hoisted_18 = {
+  "aria-label": "Pagination siswa"
+};
+var _hoisted_19 = {
+  "class": "pagination mb-0"
+};
+var _hoisted_20 = ["disabled"];
+var _hoisted_21 = ["onClick"];
+var _hoisted_22 = ["disabled"];
+var _hoisted_23 = ["disabled"];
+var _hoisted_24 = ["onClick"];
+var _hoisted_25 = ["disabled"];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  var _$setup$siswas$data;
+  var _$setup$siswas$data, _$setup$siswas;
   var _component_SiswaForm = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("SiswaForm");
-  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_3, [_cache[7] || (_cache[7] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_3, [_cache[11] || (_cache[11] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
     "class": "mb-1 siswa-kicker"
   }, "Data Master"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h5", {
     "class": "mb-0 fw-bold text-dark"
@@ -23204,14 +23260,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: _cache[0] || (_cache[0] = function () {
       return $setup.tambah && $setup.tambah.apply($setup, arguments);
     })
-  }, _toConsumableArray(_cache[6] || (_cache[6] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+  }, _toConsumableArray(_cache[10] || (_cache[10] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
     "class": "plus-icon"
   }, "+", -1 /* CACHED */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)(" Tambah Siswa ", -1 /* CACHED */)])))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_5, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
     "onUpdate:modelValue": _cache[1] || (_cache[1] = function ($event) {
       return $setup.search = $event;
     }),
     onInput: _cache[2] || (_cache[2] = function () {
-      return $setup.getSiswa && $setup.getSiswa.apply($setup, arguments);
+      return $setup.onSearchInput && $setup.onSearchInput.apply($setup, arguments);
     }),
     placeholder: "Cari nama siswa / NIS",
     "class": "form-control siswa-input"
@@ -23220,17 +23276,17 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       return $setup.kelas_id = $event;
     }),
     onChange: _cache[4] || (_cache[4] = function () {
-      return $setup.getSiswa && $setup.getSiswa.apply($setup, arguments);
+      return $setup.onKelasChange && $setup.onKelasChange.apply($setup, arguments);
     }),
     "class": "form-select siswa-input"
-  }, [_cache[8] || (_cache[8] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+  }, [_cache[12] || (_cache[12] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
     value: ""
   }, "Semua Kelas", -1 /* CACHED */)), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.kelas, function (k) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("option", {
       key: k.id,
       value: k.id
     }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(k.nama_kelas), 9 /* TEXT, PROPS */, _hoisted_7);
-  }), 128 /* KEYED_FRAGMENT */))], 544 /* NEED_HYDRATION, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $setup.kelas_id]])])]), $setup.loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_8, "Loading...")) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_9, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("table", _hoisted_10, [_cache[12] || (_cache[12] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("thead", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tr", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", {
+  }), 128 /* KEYED_FRAGMENT */))], 544 /* NEED_HYDRATION, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $setup.kelas_id]])])]), $setup.loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_8, "Loading...")) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_9, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("table", _hoisted_10, [_cache[16] || (_cache[16] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("thead", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tr", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", {
     style: {
       "width": "60px"
     }
@@ -23239,14 +23295,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "width": "120px"
     },
     "class": "text-center"
-  }, "Aksi")])], -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tbody", null, [!((_$setup$siswas$data = $setup.siswas.data) !== null && _$setup$siswas$data !== void 0 && _$setup$siswas$data.length) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", _hoisted_11, _toConsumableArray(_cache[9] || (_cache[9] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", {
+  }, "Aksi")])], -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tbody", null, [!((_$setup$siswas$data = $setup.siswas.data) !== null && _$setup$siswas$data !== void 0 && _$setup$siswas$data.length) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", _hoisted_11, _toConsumableArray(_cache[13] || (_cache[13] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", {
     colspan: "7",
     "class": "text-center text-muted py-4"
   }, "Data siswa belum ada", -1 /* CACHED */)])))) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.siswas.data, function (s, index) {
     var _s$kelas;
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", {
       key: s.id
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(index + 1), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.nis), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.nama_siswa), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_s$kelas = s.kelas) === null || _s$kelas === void 0 ? void 0 : _s$kelas.nama_kelas) || "-"), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($setup.rowNumberStart + index), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.nis), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.nama_siswa), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_s$kelas = s.kelas) === null || _s$kelas === void 0 ? void 0 : _s$kelas.nama_kelas) || "-"), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
       "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["jk-badge", s.jenis_kelamin === 'L' ? 'jk-l' : 'jk-p'])
     }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"), 3 /* TEXT, CLASS */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.no_hp || "-"), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_14, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
       onClick: function onClick($event) {
@@ -23255,7 +23311,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "class": "action-btn action-edit me-2",
       title: "Edit",
       "aria-label": "Edit"
-    }, _toConsumableArray(_cache[10] || (_cache[10] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("svg", {
+    }, _toConsumableArray(_cache[14] || (_cache[14] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("svg", {
       viewBox: "0 0 24 24",
       "aria-hidden": "true"
     }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("path", {
@@ -23267,13 +23323,68 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "class": "action-btn action-delete",
       title: "Hapus",
       "aria-label": "Hapus"
-    }, _toConsumableArray(_cache[11] || (_cache[11] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("svg", {
+    }, _toConsumableArray(_cache[15] || (_cache[15] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("svg", {
       viewBox: "0 0 24 24",
       "aria-hidden": "true"
     }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("path", {
       d: "M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z"
     })], -1 /* CACHED */)])), 8 /* PROPS */, _hoisted_16)])]);
-  }), 128 /* KEYED_FRAGMENT */))])])])), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Teleport, {
+  }), 128 /* KEYED_FRAGMENT */))])])])), ((_$setup$siswas = $setup.siswas) === null || _$setup$siswas === void 0 ? void 0 : _$setup$siswas.last_page) > 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_17, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("nav", _hoisted_18, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("ul", _hoisted_19, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("li", {
+    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["page-item", {
+      disabled: $setup.siswas.current_page === 1
+    }])
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "page-link",
+    type: "button",
+    disabled: $setup.siswas.current_page === 1,
+    onClick: _cache[5] || (_cache[5] = function ($event) {
+      return $setup.goToPage($setup.siswas.current_page - 1);
+    })
+  }, " Previous ", 8 /* PROPS */, _hoisted_20)], 2 /* CLASS */), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.pageNumbers, function (n) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("li", {
+      key: n,
+      "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["page-item", {
+        active: n === $setup.siswas.current_page
+      }])
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+      "class": "page-link",
+      type: "button",
+      onClick: function onClick($event) {
+        return $setup.goToPage(n);
+      }
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(n), 9 /* TEXT, PROPS */, _hoisted_21)], 2 /* CLASS */);
+  }), 128 /* KEYED_FRAGMENT */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("li", {
+    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["page-item", {
+      disabled: $setup.siswas.current_page === $setup.siswas.last_page
+    }])
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "page-link",
+    type: "button",
+    disabled: $setup.siswas.current_page === $setup.siswas.last_page,
+    onClick: _cache[6] || (_cache[6] = function ($event) {
+      return $setup.goToPage($setup.siswas.current_page + 1);
+    })
+  }, " Next ", 8 /* PROPS */, _hoisted_22)], 2 /* CLASS */)])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "btn btn-sm btn-secondary me-1",
+    disabled: !$setup.siswas.prev_page_url,
+    onClick: _cache[7] || (_cache[7] = function ($event) {
+      return _ctx.changePage($setup.page - 1);
+    })
+  }, " Prev ", 8 /* PROPS */, _hoisted_23), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.siswas.last_page, function (p) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+      key: p,
+      "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["btn btn-sm me-1", p === $setup.siswas.current_page ? 'btn-primary' : 'btn-outline-primary']),
+      onClick: function onClick($event) {
+        return _ctx.changePage(p);
+      }
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(p), 11 /* TEXT, CLASS, PROPS */, _hoisted_24);
+  }), 128 /* KEYED_FRAGMENT */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "btn btn-sm btn-secondary",
+    disabled: !$setup.siswas.next_page_url,
+    onClick: _cache[8] || (_cache[8] = function ($event) {
+      return _ctx.changePage($setup.page + 1);
+    })
+  }, " Next ", 8 /* PROPS */, _hoisted_25)]), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Teleport, {
     to: "body"
   }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(vue__WEBPACK_IMPORTED_MODULE_0__.Transition, {
     name: "modal-fade",
@@ -23284,14 +23395,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         key: 0,
         siswa: $setup.selectedSiswa,
         kelas: $setup.kelas,
-        onClose: _cache[5] || (_cache[5] = function ($event) {
+        onClose: _cache[9] || (_cache[9] = function ($event) {
           return $setup.showModal = false;
         }),
         onSuccess: $setup.onSuccess
       }, null, 8 /* PROPS */, ["siswa", "kelas", "onSuccess"])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)];
     }),
     _: 1 /* STABLE */
-  })]))])]);
+  })]))]);
 }
 
 /***/ },
@@ -23316,8 +23427,6 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 var app = (0,vue__WEBPACK_IMPORTED_MODULE_1__.createApp)({});
 app.component('dashboard-component', _components_Dashboard_vue__WEBPACK_IMPORTED_MODULE_2__["default"]);
 app.component('siswa-table', _components_SiswaTable_vue__WEBPACK_IMPORTED_MODULE_3__["default"]);
-app.component('alert-component', Alert); // 👈 pindahin ke atas
-
 app.mount('#app');
 
 /***/ },
@@ -23391,6 +23500,7 @@ function useSiswa() {
   // GET SISWA
   var getSiswa = /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var _res$data;
       var res;
       return _regenerator().w(function (_context) {
         while (1) switch (_context.n) {
@@ -23404,6 +23514,9 @@ function useSiswa() {
             });
           case 1:
             res = _context.v;
+            console.log("res:", res);
+            console.log("res.data:", res.data);
+            console.log("last_page:", (_res$data = res.data) === null || _res$data === void 0 ? void 0 : _res$data.last_page);
             siswas.value = res.data;
             loading.value = false;
           case 2:
@@ -23501,7 +23614,7 @@ __webpack_require__.r(__webpack_exports__);
     return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/kelas-list');
   },
   deleteSiswa: function deleteSiswa(id) {
-    return axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]('/siswa/' + id);
+    return axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]("/siswa/".concat(id));
   }
 });
 

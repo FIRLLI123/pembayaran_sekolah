@@ -10,6 +10,5 @@ const app = createApp({})
 
 app.component('dashboard-component', Dashboard)
 app.component('siswa-table', SiswaTable)
-app.component('alert-component', Alert) // 👈 pindahin ke atas
 
 app.mount('#app')

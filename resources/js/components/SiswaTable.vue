@@ -15,13 +15,13 @@
         <div class="col-md-7">
           <input
             v-model="search"
-            @input="getSiswa"
+            @input="onSearchInput"
             placeholder="Cari nama siswa / NIS"
             class="form-control siswa-input"
           />
         </div>
         <div class="col-md-5">
-          <select v-model="kelas_id" @change="getSiswa" class="form-select siswa-input">
+          <select v-model="kelas_id" @change="onKelasChange" class="form-select siswa-input">
             <option value="">Semua Kelas</option>
             <option v-for="k in kelas" :key="k.id" :value="k.id">
               {{ k.nama_kelas }}
@@ -33,6 +33,7 @@
       <div v-if="loading" class="text-muted py-4 text-center">Loading...</div>
 
       <div v-else class="table-responsive siswa-table-wrap">
+        
         <table class="table table-hover align-middle mb-0 siswa-table">
           <thead>
             <tr>
@@ -50,7 +51,7 @@
               <td colspan="7" class="text-center text-muted py-4">Data siswa belum ada</td>
             </tr>
             <tr v-for="(s, index) in siswas.data" :key="s.id">
-              <td>{{ index + 1 }}</td>
+              <td>{{ rowNumberStart + index }}</td>
               <td class="fw-semibold">{{ s.nis }}</td>
               <td class="fw-medium">{{ s.nama_siswa }}</td>
               <td>{{ s.kelas?.nama_kelas || "-" }}</td>
@@ -86,6 +87,75 @@
           </tbody>
         </table>
       </div>
+     
+
+      <div v-if="siswas?.last_page > 1"
+     class="d-flex justify-content-end mt-3">
+        <nav aria-label="Pagination siswa">
+          <ul class="pagination mb-0">
+            <li class="page-item" :class="{ disabled: siswas.current_page === 1 }">
+              <button
+                class="page-link"
+                type="button"
+                :disabled="siswas.current_page === 1"
+                @click="goToPage(siswas.current_page - 1)"
+              >
+                Previous
+              </button>
+            </li>
+            <li
+              v-for="n in pageNumbers"
+              :key="n"
+              class="page-item"
+              :class="{ active: n === siswas.current_page }"
+            >
+              <button class="page-link" type="button" @click="goToPage(n)">
+                {{ n }}
+              </button>
+            </li>
+            <li class="page-item" :class="{ disabled: siswas.current_page === siswas.last_page }">
+              <button
+                class="page-link"
+                type="button"
+                :disabled="siswas.current_page === siswas.last_page"
+                @click="goToPage(siswas.current_page + 1)"
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      
+  
+  <button
+    class="btn btn-sm btn-secondary me-1"
+    :disabled="!siswas.prev_page_url"
+    @click="changePage(page - 1)"
+  >
+    Prev
+  </button>
+
+  <button
+    v-for="p in siswas.last_page"
+    :key="p"
+    class="btn btn-sm me-1"
+    :class="p === siswas.current_page ? 'btn-primary' : 'btn-outline-primary'"
+    @click="changePage(p)"
+  >
+    {{ p }}
+  </button>
+
+  <button
+    class="btn btn-sm btn-secondary"
+    :disabled="!siswas.next_page_url"
+    @click="changePage(page + 1)"
+  >
+    Next
+  </button>
+
+</div>
 
       <Teleport to="body">
         <transition name="modal-fade" appear>
@@ -99,7 +169,7 @@
         </transition>
       </Teleport>
     </div>
-  </div>
+ 
 </template>
 
 <script>
@@ -107,7 +177,7 @@
 import Swal from "sweetalert2"
 import useSiswa from "../composables/useSiswa"
 import SiswaForm from "./SiswaForm.vue"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 
 
 export default {
@@ -119,6 +189,8 @@ export default {
 setup(){
   const showModal = ref(false)
 const selectedSiswa = ref(null)
+
+
 
 const tambah = () => {
   selectedSiswa.value = null
@@ -140,10 +212,51 @@ const {
   kelas,
   search,
   kelas_id,
+  page,
   loading,
   getSiswa,
   deleteSiswa
 } = useSiswa()
+
+const changePage = (p) => {
+  page.value = p
+  getSiswa()
+}
+
+const rowNumberStart = computed(() => ((siswas.value.current_page || 1) - 1) * (siswas.value.per_page || 10) + 1)
+
+const pageNumbers = computed(() => {
+  const total = siswas.value.last_page || 1
+  const current = siswas.value.current_page || 1
+  const delta = 2
+
+  const start = Math.max(1, current - delta)
+  const end = Math.min(total, current + delta)
+  const pages = []
+
+  for (let i = start; i <= end; i += 1) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+const goToPage = (targetPage) => {
+  if (targetPage < 1 || targetPage > (siswas.value.last_page || 1)) return
+  if (targetPage === page.value) return
+  page.value = targetPage
+  getSiswa()
+}
+
+const onSearchInput = () => {
+  page.value = 1
+  getSiswa()
+}
+
+const onKelasChange = () => {
+  page.value = 1
+  getSiswa()
+}
 
 
 // handle delete dengan sweetalert
@@ -169,9 +282,15 @@ return {
   kelas,
   search,
   kelas_id,
+  page,
   loading,
   getSiswa,
   hapus,
+  rowNumberStart,
+  pageNumbers,
+  goToPage,
+  onSearchInput,
+  onKelasChange,
 
   showModal,
   selectedSiswa,

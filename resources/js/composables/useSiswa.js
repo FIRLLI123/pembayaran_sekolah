@@ -16,20 +16,21 @@ export default function useSiswa() {
 
   // GET SISWA
   const getSiswa = async () => {
+  loading.value = true
 
-    loading.value = true
+  let res = await siswaService.getSiswa({
+    search: search.value,
+    kelas_id: kelas_id.value,
+    page: page.value
+  })
 
-    let res = await siswaService.getSiswa({
-      search: search.value,
-      kelas_id: kelas_id.value,
-      page: page.value
-    })
+  console.log("res:", res)
+  console.log("res.data:", res.data)
+  console.log("last_page:", res.data?.last_page)
 
-    siswas.value = res.data
-
-    loading.value = false
-  }
-
+  siswas.value = res.data
+  loading.value = false
+}
 
   // GET KELAS
   const getKelas = async () => {
