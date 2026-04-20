@@ -23316,6 +23316,8 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 var app = (0,vue__WEBPACK_IMPORTED_MODULE_1__.createApp)({});
 app.component('dashboard-component', _components_Dashboard_vue__WEBPACK_IMPORTED_MODULE_2__["default"]);
 app.component('siswa-table', _components_SiswaTable_vue__WEBPACK_IMPORTED_MODULE_3__["default"]);
+app.component('alert-component', Alert); // 👈 pindahin ke atas
+
 app.mount('#app');
 
 /***/ },
@@ -23546,7 +23548,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.siswa-modal-overlay[data-v-3957ca70] {\n  position: fixed;\n  inset: 0;\n  z-index: 1050;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 1rem;\n  background: rgba(15, 23, 42, 0.35);\n  backdrop-filter: blur(2px);\n}\n.siswa-modal-dialog[data-v-3957ca70] {\n  width: 100%;\n  max-width: 560px;\n}\n.modal-content[data-v-3957ca70] {\n  border-radius: 14px;\n}\n.siswa-field[data-v-3957ca70] {\n  border-radius: 10px;\n  padding: 10px 12px;\n  min-height: 44px;\n  line-height: 1.4;\n  font-size: 14px;\n  transition: all 0.2s ease;\n}\n.siswa-field[data-v-3957ca70]:focus {\n  border-color: #4e73df;\n  box-shadow: 0 0 0 0.15rem rgba(78, 115, 223, 0.25);\n}\n.custom-select[data-v-3957ca70] {\n  cursor: pointer;\n  background-position: right 0.75rem center;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.siswa-modal-overlay[data-v-3957ca70] {\r\n  position: fixed;\r\n  inset: 0;\r\n  z-index: 1050;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  padding: 1rem;\r\n  background: rgba(15, 23, 42, 0.35);\r\n  backdrop-filter: blur(2px);\n}\n.siswa-modal-dialog[data-v-3957ca70] {\r\n  width: 100%;\r\n  max-width: 560px;\n}\n.modal-content[data-v-3957ca70] {\r\n  border-radius: 14px;\n}\n.siswa-field[data-v-3957ca70] {\r\n  border-radius: 10px;\r\n  padding: 10px 12px;\r\n  min-height: 44px;\r\n  line-height: 1.4;\r\n  font-size: 14px;\r\n  transition: all 0.2s ease;\n}\n.siswa-field[data-v-3957ca70]:focus {\r\n  border-color: #4e73df;\r\n  box-shadow: 0 0 0 0.15rem rgba(78, 115, 223, 0.25);\n}\n.custom-select[data-v-3957ca70] {\r\n  cursor: pointer;\r\n  background-position: right 0.75rem center;\n}\r\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -23570,7 +23572,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.modal-fade-enter-active,\n.modal-fade-leave-active {\n  transition: opacity 0.2s ease, transform 0.2s ease;\n}\n.modal-fade-enter-from,\n.modal-fade-leave-to {\n  opacity: 0;\n  transform: scale(0.98);\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.modal-fade-enter-active,\r\n.modal-fade-leave-active {\r\n  transition: opacity 0.2s ease, transform 0.2s ease;\n}\n.modal-fade-enter-from,\r\n.modal-fade-leave-to {\r\n  opacity: 0;\r\n  transform: scale(0.98);\n}\r\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

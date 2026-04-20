@@ -58,6 +58,12 @@ class SiswaController extends Controller
             'created_user'   => auth()->id()
         ]);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'Data siswa berhasil ditambahkan'
+            ], 201);
+        }
+
         return redirect()->route('siswa.index')
             ->with('success', 'Data siswa berhasil ditambahkan');
     }
@@ -87,13 +93,25 @@ class SiswaController extends Controller
             'updated_user'   => auth()->id()
         ]);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'Data siswa berhasil diupdate'
+            ]);
+        }
+
         return redirect()->route('siswa.index')
             ->with('success', 'Data siswa berhasil diupdate');
     }
 
-    public function destroy(Siswa $siswa)
+    public function destroy(Request $request, Siswa $siswa)
     {
         $siswa->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'Data siswa berhasil dihapus'
+            ]);
+        }
 
         return redirect()->route('siswa.index')
             ->with('success', 'Data siswa berhasil dihapus');
