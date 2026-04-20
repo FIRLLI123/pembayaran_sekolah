@@ -57,7 +57,9 @@
                     <a href="{{ route('siswa.index') }}" class="btn btn-secondary">
                         Kembali
                     </a>
-                    <button class="btn btn-primary">Update</button>
+                    <button class="btn btn-primary" style="margin-left: 10px;">
+                        Update
+                    </button>
                 </div>
             </form>
         </div>

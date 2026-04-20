@@ -28,7 +28,9 @@
                     <a href="{{ route('jenis-pembayaran.index') }}" class="btn btn-secondary">
                         Kembali
                     </a>
-                    <button class="btn btn-primary">Simpan</button>
+                    <button class="btn btn-primary" style="margin-left: 10px;">
+                        Simpan
+                    </button>
                 </div>
             </form>
         </div>

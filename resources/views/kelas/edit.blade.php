@@ -34,7 +34,7 @@
                     <a href="{{ route('kelas.index') }}" class="btn btn-secondary">
                         Kembali
                     </a>
-                    <button class="btn btn-primary">
+                    <button class="btn btn-primary" style="margin-left: 10px;">
                         Update
                     </button>
                 </div>
