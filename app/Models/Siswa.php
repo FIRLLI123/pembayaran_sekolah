@@ -33,4 +33,10 @@ class Siswa extends Model
     {
         return $this->hasMany(Pembayaran::class, 'siswa_id');
     }
+
+    // Relasi: Siswa punya satu User (opsional)
+    public function user()
+    {
+        return $this->hasOne(User::class, 'siswa_id');      
+    }
 }

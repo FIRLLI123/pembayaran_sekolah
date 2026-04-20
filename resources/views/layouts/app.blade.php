@@ -12,6 +12,7 @@
     <title>Pembayaran Sekolah - Dashboard</title>
 
     <!-- Custom fonts for this template-->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="{{ asset('sbadmin2/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
@@ -25,7 +26,14 @@
         .table td, .table th { font-size: 0.9rem; }
         .form-control, .btn, .page-link { font-size: 0.9rem; }
         .h1, .h2, .h3, .h4, .h5, .h6 { margin-bottom: .75rem; }
+        #content .container-fluid { padding-left: .75rem; padding-right: .75rem; }
+        .sidebar .nav-item .nav-link { padding: .6rem .85rem; }
+        .sidebar .nav-item .collapse .collapse-inner .collapse-item { padding: .4rem .85rem; }
+        @media (min-width: 768px) {
+            .sidebar .nav-item .nav-link { padding: .75rem .85rem; }
+        }
     </style>
+    @stack('styles')
 
 </head>
 
@@ -64,40 +72,62 @@
             </div>
 
             <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Master</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="{{ route('users.index') }}">
+            <li class="nav-item {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'active' : '' }}">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+        aria-expanded="false" aria-controls="collapseTwo">
+        <i class="fas fa-fw fa-cog"></i>
+        <span>Master</span>
+    </a>
+
+    <div id="collapseTwo" class="collapse {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'show' : '' }}">
+        <div class="bg-white py-2 collapse-inner rounded">
+
+            <a class="collapse-item {{ request()->is('users*') ? 'active' : '' }}"
+                href="{{ route('users.index') }}">
                 Data User
             </a>
-                        <a class="collapse-item" href="{{ route('siswa.index') }}">Siswa</a>
-                        <a class="collapse-item" href="{{ route('kelas.index') }}">Data Kelas</a>
-                        <a class="collapse-item" href="{{ route('jenis-pembayaran.index') }}">Jenis Pembayaran</a>
-                    </div>
-                </div>
-            </li>
+
+            <a class="collapse-item {{ request()->is('siswa*') ? 'active' : '' }}"
+                href="{{ route('siswa.index') }}">
+                Siswa
+            </a>
+
+            <a class="collapse-item {{ request()->is('kelas*') ? 'active' : '' }}"
+                href="{{ route('kelas.index') }}">
+                Data Kelas
+            </a>
+
+            <a class="collapse-item {{ request()->is('jenis-pembayaran*') ? 'active' : '' }}"
+                href="{{ route('jenis-pembayaran.index') }}">
+                Jenis Pembayaran
+            </a>
+
+        </div>
+    </div>
+</li>
 
             <div class="sidebar-heading">
                 Transaksi
             </div>
 
-            <li class="nav-item">
+            <li class="nav-item {{ request()->is('pembayaran*') ? 'active' : '' }}">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTransaksi"
-                    aria-expanded="true" aria-controls="collapseTransaksi">
+                    aria-expanded="false" aria-controls="collapseTransaksi">
                     <i class="fas fa-fw fa-money-bill-wave"></i>
                     <span>Transaksi</span>
                 </a>
-                <div id="collapseTransaksi" class="collapse" data-parent="#accordionSidebar">
+
+                <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') ? 'show' : '' }}" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="{{ route('pembayaran.index') }}">Pembayaran</a>
+
+                        <a class="collapse-item {{ request()->is('pembayaran*') ? 'active' : '' }}"
+                            href="{{ route('pembayaran.index') }}">
+                            Pembayaran
+                        </a>
+
                     </div>
                 </div>
-            </li>
+            </li>   
 
 
            
@@ -153,7 +183,7 @@
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
                                 <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg">
+                                    src="{{ asset('sbadmin2/img/undraw_profile.svg') }}">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -185,14 +215,8 @@
 
                 <!-- Begin Page Content -->
                 <!-- Begin Page Content -->
-                <div class="container-fluid">
+                <div id="app" class="container-fluid">
     @yield('content')
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Blank Page</h1>
-
-                </div>
                 </div>
                 <!-- /.container-fluid -->
 

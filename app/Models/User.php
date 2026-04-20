@@ -16,6 +16,12 @@ class User extends Authenticatable
         'password',
         'role',
         'created_user',
-        'updated_user'
+        'updated_user',
+        'siswa_id',
     ];
+
+    public function siswa()
+{
+    return $this->belongsTo(Siswa::class);
+}
 }

@@ -17,6 +17,7 @@
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Role</th>
+                        <th>Siswa</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -27,6 +28,13 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ ucfirst($user->role) }}</td>
+                        <td>
+                            @if (in_array($user->role, ['ortu', 'viewer']) && $user->siswa)
+                                {{ $user->siswa->nama_siswa }} (NIS: {{ $user->siswa->nis }})
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ route('users.edit', $user->id) }}"
                                class="btn btn-warning btn-sm">Edit</a>

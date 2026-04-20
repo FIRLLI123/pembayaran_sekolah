@@ -10,9 +10,23 @@ class SiswaController extends Controller
 {
     public function index(Request $request)
 {
-    $siswa = Siswa::with('kelas')->latest()->get();
-
     if ($request->ajax()) {
+
+        $query = Siswa::with('kelas');
+
+        // SEARCH
+        if ($request->search) {
+            $query->where('nama_siswa', 'like', '%' . $request->search . '%')
+                  ->orWhere('nis', 'like', '%' . $request->search . '%');
+        }
+
+        // FILTER KELAS
+        if ($request->kelas_id) {
+            $query->where('kelas_id', $request->kelas_id);
+        }
+
+        $siswa = $query->latest()->paginate(10);
+
         return response()->json($siswa);
     }
 

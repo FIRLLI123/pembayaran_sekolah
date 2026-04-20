@@ -2,13 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Data Siswa</h1>
-
-    <a href="{{ route('siswa.create') }}" class="btn btn-primary mb-3">
-        + Tambah Siswa
-    </a>
-
-    <div class="card">
+    {{-- <div class="card">
         <div class="card-body">
             <table class="table table-bordered">
                 <thead>
@@ -50,6 +44,10 @@
                 </tbody>
             </table>
         </div>
+    </div> --}}
+
+    <div id="app">
+        <siswa-table></siswa-table>
     </div>
 </div>
 @endsection
