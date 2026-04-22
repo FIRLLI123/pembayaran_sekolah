@@ -19,6 +19,7 @@ class Pembayaran extends Model
         'metode_bayar',
         'status',
         'keterangan',
+        'upload_foto',
         'created_user',
         'updated_user',
         'tagihan_id'

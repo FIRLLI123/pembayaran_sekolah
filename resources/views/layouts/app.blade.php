@@ -39,6 +39,11 @@
 
 <body id="page-top">
 
+    @php
+        $currentUser = auth()->user();
+        $currentRole = $currentUser->role ?? null;
+    @endphp
+
     <!-- Page Wrapper -->
     <div id="wrapper">
 
@@ -57,82 +62,95 @@
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
+            <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('dashboard') }}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+            @if($currentRole !== 'ortu')
+                <!-- Divider -->
+                <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Interface
-            </div>
+                <!-- Heading -->
+                <div class="sidebar-heading">
+                    Interface
+                </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'active' : '' }}">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-        aria-expanded="false" aria-controls="collapseTwo">
-        <i class="fas fa-fw fa-cog"></i>
-        <span>Master</span>
-    </a>
+                <!-- Nav Item - Pages Collapse Menu -->
+                <li class="nav-item {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+            aria-expanded="false" aria-controls="collapseTwo">
+            <i class="fas fa-fw fa-cog"></i>
+            <span>Master</span>
+        </a>
 
-    <div id="collapseTwo" class="collapse {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'show' : '' }}">
-        <div class="bg-white py-2 collapse-inner rounded">
+        <div id="collapseTwo" class="collapse {{ request()->is('siswa*') || request()->is('users*') || request()->is('kelas*') || request()->is('jenis-pembayaran*') ? 'show' : '' }}">
+            <div class="bg-white py-2 collapse-inner rounded">
 
-            <a class="collapse-item {{ request()->is('users*') ? 'active' : '' }}"
-                href="{{ route('users.index') }}">
-                Data User
-            </a>
-
-            <a class="collapse-item {{ request()->is('siswa*') ? 'active' : '' }}"
-                href="{{ route('siswa.index') }}">
-                Siswa
-            </a>
-
-            <a class="collapse-item {{ request()->is('kelas*') ? 'active' : '' }}"
-                href="{{ route('kelas.index') }}">
-                Data Kelas
-            </a>
-
-            <a class="collapse-item {{ request()->is('jenis-pembayaran*') ? 'active' : '' }}"
-                href="{{ route('jenis-pembayaran.index') }}">
-                Jenis Pembayaran
-            </a>
-
-        </div>
-    </div>
-</li>
-
-            <div class="sidebar-heading">
-                Transaksi
-            </div>
-
-            <li class="nav-item {{ request()->is('pembayaran*') ? 'active' : '' || request()->is('tagihan*') ? 'active' : '' }}">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTransaksi"
-                    aria-expanded="false" aria-controls="collapseTransaksi">
-                    <i class="fas fa-fw fa-money-bill-wave"></i>
-                    <span>Transaksi</span>
+                <a class="collapse-item {{ request()->is('users*') ? 'active' : '' }}"
+                    href="{{ route('users.index') }}">
+                    Data User
                 </a>
 
-                <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') || request()->is('tagihan*') ? 'show' : '' }}" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item {{ request()->is('siswa*') ? 'active' : '' }}"
+                    href="{{ route('siswa.index') }}">
+                    Siswa
+                </a>
 
-                        <a class="collapse-item {{ request()->is('pembayaran*') ? 'active' : '' }}"
-                            href="{{ route('pembayaran.index') }}">
-                            Pembayaran
-                        </a>
+                <a class="collapse-item {{ request()->is('kelas*') ? 'active' : '' }}"
+                    href="{{ route('kelas.index') }}">
+                    Data Kelas
+                </a>
 
-                        <a class="collapse-item {{ request()->is('tagihan*') ? 'active' : '' }}"
-                            href="{{ route('tagihan.index') }}">
-                            Tagihan
-                        </a>
+                <a class="collapse-item {{ request()->is('jenis-pembayaran*') ? 'active' : '' }}"
+                    href="{{ route('jenis-pembayaran.index') }}">
+                    Jenis Pembayaran
+                </a>
 
-                    </div>
+            </div>
+        </div>
+    </li>
+
+                <div class="sidebar-heading">
+                    Transaksi
                 </div>
-            </li>   
+
+                <li class="nav-item {{ request()->is('pembayaran*') ? 'active' : '' || request()->is('tagihan*') ? 'active' : '' }}">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTransaksi"
+                        aria-expanded="false" aria-controls="collapseTransaksi">
+                        <i class="fas fa-fw fa-money-bill-wave"></i>
+                        <span>Transaksi</span>
+                    </a>
+
+                    <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') || request()->is('tagihan*') ? 'show' : '' }}" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+
+                            <a class="collapse-item {{ request()->is('pembayaran*') ? 'active' : '' }}"
+                                href="{{ route('pembayaran.index') }}">
+                                Pembayaran
+                            </a>
+
+                            <a class="collapse-item {{ request()->is('tagihan*') ? 'active' : '' }}"
+                                href="{{ route('tagihan.index') }}">
+                                Tagihan
+                            </a>
+
+                        </div>
+                    </div>
+                </li>
+            @else
+                <hr class="sidebar-divider">
+                <div class="sidebar-heading">
+                    Informasi
+                </div>
+                <li class="nav-item {{ request()->routeIs('ortu.riwayat') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('ortu.riwayat') }}">
+                        <i class="fas fa-fw fa-history"></i>
+                        <span>Riwayat Pembayaran</span>
+                    </a>
+                </li>
+            @endif
 
 
            
@@ -186,7 +204,7 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ $currentUser->name ?? 'User' }}</span>
                                 <img class="img-profile rounded-circle"
                                     src="{{ asset('sbadmin2/img/undraw_profile.svg') }}">
                             </a>

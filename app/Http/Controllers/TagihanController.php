@@ -17,6 +17,10 @@ class TagihanController extends Controller
 
 public function index(Request $request)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu') {
+        return redirect()->route('ortu.riwayat');
+    }
+
     $query = \App\Models\Tagihan::with(['siswa', 'jenisPembayaran'])
         ->select('siswa_id',
             DB::raw('SUM(nominal_tagihan) as total_nominal'),
@@ -24,17 +28,15 @@ public function index(Request $request)
         )
         ->groupBy('siswa_id');
 
-    // filter bulan
-    if ($request->bulan) {
-        $query->where('periode_bulan', $request->bulan);
+    // filter nama siswa
+    if ($request->filled('nama_siswa')) {
+        $namaSiswa = trim($request->nama_siswa);
+        $query->whereHas('siswa', function ($q) use ($namaSiswa) {
+            $q->where('nama_siswa', 'like', '%' . $namaSiswa . '%');
+        });
     }
 
-    // filter tahun
-    if ($request->tahun) {
-        $query->where('periode_tahun', $request->tahun);
-    }
-
-    $tagihan = $query->latest()->paginate(10);
+    $tagihan = $query->latest()->paginate(10)->withQueryString();
     $siswa   = Siswa::all();
 
     return view('tagihan.index', compact('tagihan', 'siswa'));
@@ -42,6 +44,10 @@ public function index(Request $request)
 
 public function detail(Request $request, $siswaId)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu' && (int) auth()->user()->siswa_id !== (int) $siswaId) {
+        abort(403, 'Akses ditolak');
+    }
+
     $siswa = Siswa::findOrFail($siswaId);
 
     $query = Tagihan::with(['jenisPembayaran'])
@@ -121,6 +127,10 @@ public function detail(Request $request, $siswaId)
 
 public function bayar(Request $request, $id)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu') {
+        abort(403, 'Akses ditolak');
+    }
+
     // dd($request->all());
     $request->validate([
         'nominal_bayar' => 'required|numeric|min:1',
@@ -174,6 +184,10 @@ public function bayar(Request $request, $id)
 
 public function multiBayar(Request $request, $siswaId)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu') {
+        abort(403, 'Akses ditolak');
+    }
+
     // 🔍 Validasi
     $request->validate([
         'total_bayar' => 'required|numeric|min:1',
@@ -269,6 +283,10 @@ public function multiBayar(Request $request, $siswaId)
 
 public function totalBelumLunas($siswaId)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu' && (int) auth()->user()->siswa_id !== (int) $siswaId) {
+        abort(403, 'Akses ditolak');
+    }
+
     $total = Tagihan::where('siswa_id', $siswaId)
         ->where('status', '!=', 'lunas')
         ->sum('sisa_tagihan');
@@ -375,6 +393,10 @@ public function generateSPP(Request $request)
 
 public function detailAjax($siswaId)
 {
+    if (auth()->check() && auth()->user()->role === 'ortu' && (int) auth()->user()->siswa_id !== (int) $siswaId) {
+        abort(403, 'Akses ditolak');
+    }
+
     $detail = Tagihan::with(['jenisPembayaran'])
         ->where('siswa_id', $siswaId)
         ->orderBy('periode_tahun')
@@ -382,6 +404,54 @@ public function detailAjax($siswaId)
         ->get();
 
     return response()->json($detail);
+}
+
+public function ortuRiwayat(Request $request)
+{
+    $user = auth()->user();
+
+    if (!$user || $user->role !== 'ortu') {
+        abort(403, 'Akses ditolak');
+    }
+
+    if (!$user->siswa_id) {
+        return redirect()->route('dashboard')->with('error', 'Akun ortu belum terhubung ke data siswa.');
+    }
+
+    $siswa = Siswa::with('kelas')->findOrFail($user->siswa_id);
+
+    $pembayaranQuery = Pembayaran::with(['jenisPembayaran', 'tagihan'])
+        ->where('siswa_id', $user->siswa_id);
+
+    if ($request->filled('tanggal_mulai')) {
+        $pembayaranQuery->whereDate('tanggal_bayar', '>=', $request->tanggal_mulai);
+    }
+
+    if ($request->filled('tanggal_selesai')) {
+        $pembayaranQuery->whereDate('tanggal_bayar', '<=', $request->tanggal_selesai);
+    }
+
+    if ($request->filled('jenis_pembayaran_id')) {
+        $pembayaranQuery->where('jenis_pembayaran_id', $request->jenis_pembayaran_id);
+    }
+
+    $pembayaran = $pembayaranQuery
+        ->orderByDesc('tanggal_bayar')
+        ->paginate(8, ['*'], 'pembayaran_page')
+        ->withQueryString();
+
+    $tagihan = Tagihan::with('jenisPembayaran')
+        ->where('siswa_id', $user->siswa_id)
+        ->orderByDesc('periode_tahun')
+        ->orderByDesc('periode_bulan')
+        ->orderByDesc('id')
+        ->paginate(10, ['*'], 'tagihan_page')
+        ->withQueryString();
+
+    $jenisPembayaran = JenisPembayaran::orderBy('nama_pembayaran')
+        ->get(['id', 'nama_pembayaran']);
+
+    return view('ortu.riwayat', compact('siswa', 'pembayaran', 'tagihan', 'jenisPembayaran'));
 }
 
 

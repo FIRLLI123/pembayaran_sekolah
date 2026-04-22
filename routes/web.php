@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('siswa', SiswaController::class);
     Route::resource('jenis-pembayaran', JenisPembayaranController::class);
     Route::resource('pembayaran', PembayaranController::class)->only(['index']);
+    Route::get('/ortu/riwayat-pembayaran', [TagihanController::class, 'ortuRiwayat'])
+        ->name('ortu.riwayat');
 
     Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
     Route::get('/tagihan/{siswaId}/detail', [TagihanController::class, 'detail'])->name('tagihan.detail');

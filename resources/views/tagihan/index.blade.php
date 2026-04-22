@@ -6,41 +6,21 @@
 
     <h1 class="h3 mb-2 text-gray-800">Data Tagihan</h1>
     <p class="data-table-kicker mb-3">Manajemen tagihan siswa</p>
-
-    {{-- 🔥 FILTER --}}
+    {{-- FILTER --}}
     <form method="GET" action="{{ route('tagihan.index') }}" class="mb-3">
         <div class="row">
-
-            <div class="col-md-3">
-                <select name="status" class="form-control">
-                    <option value="">-- Semua Status --</option>
-                    <option value="belum_bayar" {{ request('status') == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
-                    <option value="cicil" {{ request('status') == 'cicil' ? 'selected' : '' }}>Cicil</option>
-                    <option value="lunas" {{ request('status') == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                </select>
+            <div class="col-md-4">
+                <input type="text"
+                       name="nama_siswa"
+                       class="form-control"
+                       placeholder="Cari nama siswa..."
+                       value="{{ request('nama_siswa') }}">
             </div>
 
             <div class="col-md-2">
-                <select name="bulan" class="form-control">
-                    <option value="">-- Bulan --</option>
-                    @for ($i = 1; $i <= 12; $i++)
-                        <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
-                        </option>
-                    @endfor
-                </select>
+                <button class="btn btn-primary">Cari</button>
+                <a href="{{ route('tagihan.index') }}" class="btn btn-secondary" style="marginLeft:10px;">Reset</a>
             </div>
-
-            <div class="col-md-2">
-                <input type="number" name="tahun" class="form-control"
-                       placeholder="Tahun" value="{{ request('tahun') }}">
-            </div>
-
-            <div class="col-md-2">
-                <button class="btn btn-primary">Filter</button>
-                <a href="{{ route('tagihan.index') }}" class="btn btn-secondary"  style="marginLeft:10px;">Reset</a>
-            </div>
-
         </div>
     </form>
 
@@ -154,43 +134,51 @@
 
                 {{-- Modal Generate Tagihan SPP --}} 
     <div class="modal fade" id="modalGenerate" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <form method="POST" action="{{ route('generate.spp') }}">
       @csrf
-      <div class="modal-content">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
 
-        <div class="modal-header">
-          <h5 class="modal-title">⚡ Generate Tagihan SPP</h5>
+        {{-- Header --}}
+        <div class="modal-header px-4 py-3 border-bottom" style="background: #f8f9fa;">
+          <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0">
+            <span style="color: #f59e0b;">⚡</span> Generate Tagihan SPP
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
-        <div class="modal-body">
+        {{-- Body --}}
+        <div class="modal-body px-4 py-4" style="color: #1a1a1a;">
 
           {{-- Tahun --}}
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Tahun</label>
-            <input type="number" name="tahun" id="input_tahun" class="form-control"
+          <div class="mb-4">
+            <label class="form-label fw-semibold mb-2">Tahun</label>
+            <input type="number" name="tahun" id="input_tahun" class="form-control form-control-lg"
                    value="{{ now()->year }}" min="2020" max="2099"
+                   style="max-width: 200px;"
                    onchange="loadStatusBulan(this.value)">
           </div>
 
           {{-- Pilih Bulan --}}
           <div class="mb-2">
-            <label class="form-label fw-semibold">Pilih Bulan</label>
-            <div class="d-flex gap-2 mb-2">
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="checkAllBulan()">Pilih Semua</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="uncheckAllBulan()">Hapus Semua</button>
+            <label class="form-label fw-semibold mb-2">Pilih Bulan</label>
+            <div class="d-flex gap-2 mb-3">
+              <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="checkAllBulan()">Pilih Semua</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="uncheckAllBulan()" style="margin-left: 10px">Hapus Semua</button>
             </div>
-            <div id="bulan_checklist" class="row g-2">
+            <div id="bulan_checklist" class="row g-3">
               {{-- diisi JS --}}
             </div>
           </div>
 
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-success">⚡ Generate</button>
+        {{-- Footer --}}
+        <div class="modal-footer px-4 py-3 border-top" style="background: #f8f9fa;">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-success px-4 d-flex align-items-center gap-2">
+            <span>⚡</span> Generate
+          </button>
         </div>
 
       </div>
@@ -457,8 +445,8 @@ function renderChecklist() {
         let sudahAda = statusBulan[i] === true;
 
         container.innerHTML += `
-            <div class="col-6 col-md-4">
-                <div class="form-check border rounded px-3 py-2 ${sudahAda ? 'bg-light' : ''}">
+            <div class="col-6 col-md-4 mb-3">
+                <div class="form-check border rounded px-3 py-3 ${sudahAda ? 'bg-light' : ''}">
                     <input class="form-check-input" type="checkbox"
                            name="bulan[]" value="${i}" id="bulan_${i}"
                            ${sudahAda ? 'checked' : ''}>
@@ -628,5 +616,10 @@ Swal.fire({
 @push('styles')
 <style>
     tr.row-aktif { background-color: #E6F1FB !important; }
+
+    #bulan_checklist .form-check {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
 </style>
 @endpush
