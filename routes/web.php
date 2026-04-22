@@ -19,10 +19,6 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('login');
 
-Route::get('/dashboard', function () {
-    return view('dashboard2');
-});
-
 /* AUTH */
 Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'authenticate'])->name('login.process');
@@ -31,7 +27,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 /* DASHBOARD (sementara) */
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard2');
+        $role = auth()->user()->role ?? null;
+
+        if ($role === 'ortu') {
+            return view('dashboard2');
+        }
+
+        return view('dashboard');
     })->name('dashboard');
 
 

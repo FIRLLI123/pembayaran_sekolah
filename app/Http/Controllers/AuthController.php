@@ -28,7 +28,7 @@ class AuthController extends Controller
             }
 
             if (auth()->user()->role === 'ortu') {
-                return redirect()->route('ortu.riwayat')->with('success', 'Login sebagai Orang Tua');
+                return redirect()->route('dashboard')->with('success', 'Login sebagai Orang Tua');
             }
 
             return redirect()->route('dashboard')->with('success', 'Login sebagai Petugas');

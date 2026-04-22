@@ -568,7 +568,7 @@
             </form>
 
             <div class="card-footer-text">
-                &copy; {{ date('Y') }} Sistem Pembayaran Sekolah &nbsp;·&nbsp; All rights reserved
+                &copy; {{ date('Y') }} Sistem Pembayaran Sekolah - @Firlli &nbsp;·&nbsp; All rights reserved
             </div>
 
         </div>
