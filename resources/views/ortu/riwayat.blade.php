@@ -151,8 +151,28 @@
     .pay-theme-red   .pay-badge     { background: #F7C1C1; color: #791F1F; }
     .dot-red   { background: #E24B4A; }
 
+    .pay-theme-purple { background: #EEEDFE; }
+    .pay-theme-purple .pay-item-name { color: #3C3489; }
+    .pay-theme-purple .pay-item-sub  { color: #534AB7; }
+    .pay-theme-purple .pay-badge     { background: #CECBF6; color: #3C3489; }
+    .dot-purple { background: #7F77DD; }
+
     .table thead th {
         white-space: nowrap;
+    }
+
+    .receipt-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #0f172a;
+        color: #fff;
+        text-decoration: none;
+        margin-left: 6px;
+        font-size: 12px;
     }
 </style>
 @endpush
@@ -160,6 +180,20 @@
 @section('content')
 <div class="container-fluid ortu-wrapper">
     <h1 class="h3 mb-3 text-gray-800">Riwayat Pembayaran & Tagihan</h1>
+
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
     <div class="ortu-header-card">
         <div class="ortu-title">Data Siswa</div>
@@ -201,7 +235,7 @@
         <div class="pay-section-label">Riwayat Pembayaran</div>
 
         @php
-            $colorThemes = ['blue', 'teal', 'amber', 'red'];
+            $colorThemes = ['blue', 'teal', 'amber', 'red', 'purple'];
         @endphp
 
         <div class="pay-timeline">
@@ -209,7 +243,13 @@
                 @php
                     $theme = $colorThemes[$index % count($colorThemes)];
                     $isLast = $loop->last;
-                    $statusLabel = $item->status === 'lunas' ? 'Lunas' : 'Cicil';
+                    if ($item->status === 'pending') {
+                        $statusLabel = 'Pending';
+                    } elseif ($item->status === 'lunas') {
+                        $statusLabel = 'Lunas';
+                    } else {
+                        $statusLabel = 'Cicil';
+                    }
                 @endphp
                 <div class="pay-row">
                     <div class="pay-line-col">
@@ -225,9 +265,23 @@
                                 {{ optional($item->tanggal_bayar)->format('d M Y') ?? '-' }}
                                 | Rp {{ number_format($item->nominal_bayar, 0, ',', '.') }}
                                 | {{ strtoupper($item->metode_bayar ?? '-') }}
+                                @if($item->upload_foto)
+                                    | <a href="{{ asset($item->upload_foto) }}" target="_blank" rel="noopener">Bukti</a>
+                                @endif
                             </p>
                         </div>
-                        <span class="pay-badge">{{ $statusLabel }}</span>
+                        <div class="d-flex align-items-center">
+                            <span class="pay-badge">{{ $statusLabel }}</span>
+                            @if($item->status === 'lunas')
+                                <a href="{{ route('pembayaran.kwitansi', $item->id) }}"
+                                   target="_blank"
+                                   rel="noopener"
+                                   class="receipt-link"
+                                   title="Lihat Kwitansi">
+                                    <i class="fas fa-file-invoice"></i>
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @empty
@@ -253,6 +307,7 @@
                         <th>Nominal</th>
                         <th>Sisa</th>
                         <th>Status</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -278,10 +333,21 @@
                                     <span class="badge badge-success">Lunas</span>
                                 @endif
                             </td>
+                            <td class="text-center">
+                                @if($item->status !== 'lunas')
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary"
+                                            onclick="openBayarOrtuModal({{ $item->id }}, {{ $item->sisa_tagihan }})">
+                                        Bayar
+                                    </button>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">Tidak ada data tagihan.</td>
+                            <td colspan="7" class="text-center text-muted">Tidak ada data tagihan.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -293,4 +359,115 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalBayarOrtu" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" id="formBayarOrtu" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajukan Pembayaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Sisa Tagihan</label>
+                        <input type="text" id="ortu_sisa_view" class="form-control" readonly>
+                        <input type="hidden" id="ortu_sisa_real" value="0">
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Nominal Bayar</label>
+                        <input type="text"
+                               id="ortu_nominal_view"
+                               class="form-control"
+                               placeholder="Rp 0"
+                               onkeyup="formatOrtuRupiah(this)"
+                               required>
+                        <input type="hidden" name="nominal_bayar" id="ortu_nominal_real">
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Metode Bayar</label>
+                        <select name="metode_bayar" class="form-control" required>
+                            <option value="transfer">Transfer</option>
+                            <option value="cash">Cash</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Upload Bukti Bayar</label>
+                        <input type="file"
+                               name="upload_foto"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               required>
+                        <small class="text-muted">Format: JPG, JPEG, PNG, WEBP. Maksimal 2 MB.</small>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Keterangan</label>
+                        <textarea name="keterangan" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Kirim Pengajuan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+function formatRupiahOrtu(angka) {
+    let numberString = angka.replace(/[^,\d]/g, '').toString();
+    let split = numberString.split(',');
+    let sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    return rupiah ? 'Rp ' + rupiah : '';
+}
+
+function formatOrtuRupiah(el) {
+    let value = el.value.replace(/[^0-9]/g, '');
+    document.getElementById('ortu_nominal_real').value = value;
+    el.value = formatRupiahOrtu(value);
+}
+
+function openBayarOrtuModal(tagihanId, sisaTagihan) {
+    const form = document.getElementById('formBayarOrtu');
+    form.action = '/ortu/tagihan/' + tagihanId + '/bayar';
+
+    document.getElementById('ortu_sisa_real').value = sisaTagihan;
+    document.getElementById('ortu_sisa_view').value = formatRupiahOrtu(String(sisaTagihan));
+    document.getElementById('ortu_nominal_real').value = sisaTagihan;
+    document.getElementById('ortu_nominal_view').value = formatRupiahOrtu(String(sisaTagihan));
+
+    new bootstrap.Modal(document.getElementById('modalBayarOrtu')).show();
+}
+
+document.getElementById('formBayarOrtu').addEventListener('submit', function (e) {
+    const nominal = parseInt(document.getElementById('ortu_nominal_real').value || '0', 10);
+    const sisa = parseInt(document.getElementById('ortu_sisa_real').value || '0', 10);
+
+    if (!nominal || nominal <= 0) {
+        e.preventDefault();
+        alert('Nominal bayar harus diisi.');
+        return;
+    }
+
+    if (nominal > sisa) {
+        e.preventDefault();
+        alert('Nominal bayar tidak boleh melebihi sisa tagihan.');
+    }
+});
+</script>
+@endpush

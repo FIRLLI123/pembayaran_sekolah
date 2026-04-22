@@ -43,8 +43,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('siswa', SiswaController::class);
     Route::resource('jenis-pembayaran', JenisPembayaranController::class);
     Route::resource('pembayaran', PembayaranController::class)->only(['index']);
+    Route::get('/pembayaran/{id}/kwitansi', [PembayaranController::class, 'kwitansi'])
+        ->name('pembayaran.kwitansi');
+    Route::get('/pembayaran/verifikasi', [PembayaranController::class, 'verifikasi'])->name('pembayaran.verifikasi');
+    Route::post('/pembayaran/{id}/approve', [PembayaranController::class, 'approve'])->name('pembayaran.approve');
+    Route::post('/pembayaran/{id}/reject', [PembayaranController::class, 'reject'])->name('pembayaran.reject');
     Route::get('/ortu/riwayat-pembayaran', [TagihanController::class, 'ortuRiwayat'])
         ->name('ortu.riwayat');
+    Route::post('/ortu/tagihan/{id}/bayar', [TagihanController::class, 'ortuBayarTagihan'])
+        ->name('ortu.tagihan.bayar');
 
     Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
     Route::get('/tagihan/{siswaId}/detail', [TagihanController::class, 'detail'])->name('tagihan.detail');

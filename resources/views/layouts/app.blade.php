@@ -42,6 +42,9 @@
     @php
         $currentUser = auth()->user();
         $currentRole = $currentUser->role ?? null;
+        $pendingVerifikasiCount = $currentRole === 'admin'
+            ? \App\Models\Pembayaran::where('status', 'pending')->count()
+            : 0;
     @endphp
 
     <!-- Page Wrapper -->
@@ -120,7 +123,12 @@
                     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTransaksi"
                         aria-expanded="false" aria-controls="collapseTransaksi">
                         <i class="fas fa-fw fa-money-bill-wave"></i>
-                        <span>Transaksi</span>
+                        <span>
+                            Transaksi
+                            @if($currentRole === 'admin' && $pendingVerifikasiCount > 0)
+                                <span class="badge badge-danger ml-1">{{ $pendingVerifikasiCount }}</span>
+                            @endif
+                        </span>
                     </a>
 
                     <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') || request()->is('tagihan*') ? 'show' : '' }}" data-parent="#accordionSidebar">
@@ -130,6 +138,16 @@
                                 href="{{ route('pembayaran.index') }}">
                                 Pembayaran
                             </a>
+
+                            @if($currentRole === 'admin')
+                                <a class="collapse-item {{ request()->routeIs('pembayaran.verifikasi') ? 'active' : '' }}"
+                                    href="{{ route('pembayaran.verifikasi') }}">
+                                    Verifikasi Pembayaran
+                                    @if($pendingVerifikasiCount > 0)
+                                        <span class="badge badge-danger ml-1">{{ $pendingVerifikasiCount }}</span>
+                                    @endif
+                                </a>
+                            @endif
 
                             <a class="collapse-item {{ request()->is('tagihan*') ? 'active' : '' }}"
                                 href="{{ route('tagihan.index') }}">

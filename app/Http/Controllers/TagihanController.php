@@ -454,6 +454,82 @@ public function ortuRiwayat(Request $request)
     return view('ortu.riwayat', compact('siswa', 'pembayaran', 'tagihan', 'jenisPembayaran'));
 }
 
+public function ortuBayarTagihan(Request $request, $id)
+{
+    $user = auth()->user();
+
+    if (!$user || $user->role !== 'ortu') {
+        abort(403, 'Akses ditolak');
+    }
+
+    if (!$user->siswa_id) {
+        return back()->with('error', 'Akun ortu belum terhubung ke data siswa.');
+    }
+
+    $request->validate([
+        'nominal_bayar' => 'required|numeric|min:1',
+        'metode_bayar' => 'required|in:cash,transfer',
+        'keterangan' => 'nullable|string',
+        'upload_foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    $tagihan = Tagihan::findOrFail($id);
+
+    if ((int) $tagihan->siswa_id !== (int) $user->siswa_id) {
+        abort(403, 'Akses ditolak');
+    }
+
+    if ($tagihan->status === 'lunas' || (int) $tagihan->sisa_tagihan <= 0) {
+        return back()->with('error', 'Tagihan sudah lunas.');
+    }
+
+    if ((int) $request->nominal_bayar > (int) $tagihan->sisa_tagihan) {
+        return back()->with('error', 'Nominal melebihi sisa tagihan.');
+    }
+
+    $pendingSebelumnya = Pembayaran::where('tagihan_id', $tagihan->id)
+        ->where('siswa_id', $user->siswa_id)
+        ->where('status', 'pending')
+        ->exists();
+
+    if ($pendingSebelumnya) {
+        return back()->with('error', 'Masih ada pembayaran pending untuk tagihan ini.');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        $folder = public_path('uploads/pembayaran');
+        if (!is_dir($folder)) {
+            mkdir($folder, 0755, true);
+        }
+
+        $file = $request->file('upload_foto');
+        $filename = 'bukti_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move($folder, $filename);
+
+        Pembayaran::create([
+            'tagihan_id' => $tagihan->id,
+            'siswa_id' => $tagihan->siswa_id,
+            'jenis_pembayaran_id' => $tagihan->jenis_pembayaran_id,
+            'tanggal_bayar' => now(),
+            'nominal_bayar' => $request->nominal_bayar,
+            'metode_bayar' => $request->metode_bayar,
+            'status' => 'pending',
+            'keterangan' => $request->keterangan,
+            'upload_foto' => 'uploads/pembayaran/' . $filename,
+            'created_user' => $user->name ?? 'ortu',
+        ]);
+
+        DB::commit();
+
+        return back()->with('success', 'Pembayaran berhasil diajukan dan menunggu verifikasi admin.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Gagal mengajukan pembayaran.');
+    }
+}
+
 
 public function createCustom()
 {

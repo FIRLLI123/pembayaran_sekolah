@@ -81,6 +81,7 @@
                             </button>
                         </th>
                         <th>Keterangan</th>
+                        <th class="text-center">Kwitansi</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -109,6 +110,7 @@
             'metode' => $item->metode_bayar ?? '-',
             'status' => $item->status ?? '-',
             'keterangan' => $item->keterangan ?: '-',
+            'kwitansi_url' => route('pembayaran.kwitansi', $item->id),
         ];
     })->values();
 @endphp
@@ -178,9 +180,13 @@
             tableBody.innerHTML = '';
 
             if (pageRows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center">Data pembayaran belum tersedia.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Data pembayaran belum tersedia.</td></tr>';
             } else {
                 pageRows.forEach((row, idx) => {
+                    const kwitansiCell = row.status === 'lunas'
+                        ? `<a href="${row.kwitansi_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" title="Lihat Kwitansi PDF"><i class="fas fa-file-pdf"></i></a>`
+                        : '<span class="text-muted">-</span>';
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${start + idx + 1}</td>
@@ -192,6 +198,7 @@
                         <td class="text-capitalize">${row.metode}</td>
                         <td class="text-capitalize">${row.status}</td>
                         <td>${row.keterangan}</td>
+                        <td class="text-center">${kwitansiCell}</td>
                     `;
                     tableBody.appendChild(tr);
                 });
