@@ -18,10 +18,16 @@ class User extends Authenticatable
         'created_user',
         'updated_user',
         'siswa_id',
+        'ortu_id',
     ];
 
     public function siswa()
 {
     return $this->belongsTo(Siswa::class);
+}
+
+public function ortu()
+{
+    return $this->belongsTo(Ortu::class);
 }
 }

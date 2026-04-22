@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             JenisPembayaranSeeder::class,
             SiswaSeeder::class,
             PembayaranSeeder::class,
+            OrtuSeeder::class,
         ]);
     }
 }

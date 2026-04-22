@@ -1,20 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Page Heading -->
+@php
+    $formatRupiah = function ($nominal) {
+        return 'Rp ' . number_format((int) $nominal, 0, ',', '.');
+    };
+@endphp
+
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <div class="d-none d-sm-inline-block">
-        <form method="GET" class="form-inline">
-            <label class="mr-2">Filter Branch:</label>
-            <select name="branch_id" class="form-control form-control-sm">
-                <option value="">Semua Branch</option>
-            </select>
-        </form>
-    </div>
+    <h1 class="h3 mb-0 text-gray-800">Dashboard Pembayaran Sekolah</h1>
+    <span class="text-muted small">Update: {{ now()->translatedFormat('d F Y H:i') }}</span>
 </div>
 
-<!-- Content Row - Summary Cards -->
 <div class="row">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">
@@ -22,12 +19,14 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Jumlah Pelanggan
+                            Total Tagihan Bulan Ini
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ $formatRupiah($totalTagihanBulanIni) }}
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                        <i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -40,30 +39,14 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Jumlah Pemasangan
+                            Total Pembayaran Masuk
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ $formatRupiah($totalPembayaranMasuk) }}
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Jumlah Stok Gudang
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                        <i class="fas fa-wallet fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -76,12 +59,34 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Jumlah Sales
+                            Jumlah Siswa Belum Lunas
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ number_format($jumlahSiswaBelumLunas, 0, ',', '.') }}
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        <i class="fas fa-user-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Jumlah Siswa Aktif
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ number_format($jumlahSiswaAktif, 0, ',', '.') }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -89,90 +94,175 @@
     </div>
 </div>
 
-<!-- Content Row -->
 <div class="row">
     <div class="col-xl-8 col-lg-7">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Earnings Overview (Coming Soon)</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink1"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink1">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
-                </div>
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Tren Pembayaran Masuk per Bulan (Target vs Realisasi)</h6>
             </div>
             <div class="card-body">
-                <div class="chart-area">
-                    <canvas id="myAreaChart"></canvas>
-                </div>
+                <div class="chart-area" style="height: 380px;">
+    <canvas id="paymentTrendChart"></canvas>
+</div>
             </div>
         </div>
     </div>
 
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Revenue Sources (Coming Soon)</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink2"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink2">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
-                </div>
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Status Tagihan Keseluruhan</h6>
             </div>
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
-                    <canvas id="myPieChart"></canvas>
-                </div>
+                <div class="chart-pie pt-4 pb-2" style="height: 320px;">
+    <canvas id="statusTagihanChart"></canvas>
+</div>
                 <div class="mt-4 text-center small">
-                    <span class="mr-2"><i class="fas fa-circle text-primary"></i> Direct</span>
-                    <span class="mr-2"><i class="fas fa-circle text-success"></i> Social</span>
-                    <span class="mr-2"><i class="fas fa-circle text-info"></i> Referral</span>
+                    <span class="mr-2"><i class="fas fa-circle text-success"></i> Lunas</span>
+                    <span class="mr-2"><i class="fas fa-circle text-warning"></i> Cicil</span>
+                    <span class="mr-2"><i class="fas fa-circle text-danger"></i> Belum Bayar</span>
+                </div>
+                <hr>
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Lunas</span>
+                        <strong>{{ $statusTagihan['lunas'] }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Cicil</span>
+                        <strong>{{ $statusTagihan['cicil'] }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Belum Bayar</span>
+                        <strong>{{ $statusTagihan['belum_bayar'] }}</strong>
+                    </div>
+                    <div class="text-muted mt-2">Total tagihan: {{ $totalStatusTagihan }}</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Content Row -->
 <div class="row">
-    <div class="col-lg-6 mb-4">
+    <div class="col-12">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Pemasangan per Sales - Bulan Ini</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Realisasi Pembayaran per Jenis</h6>
             </div>
             <div class="card-body">
-                <p class="text-muted">Tidak ada data pemasangan bulan ini.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Pemasangan per Branch - Bulan Ini</h6>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Tidak ada data pemasangan bulan ini.</p>
+                @forelse($progressPerJenis as $item)
+                    <h4 class="small font-weight-bold">
+                        {{ $item['nama_pembayaran'] }}
+                        <span class="float-right">
+                            {{ number_format($item['persentase'], 2, ',', '.') }}%
+                            ({{ $formatRupiah($item['total_bayar']) }} / {{ $formatRupiah($item['total_tagihan']) }})
+                        </span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div
+                            class="progress-bar {{ $item['persentase'] >= 75 ? 'bg-success' : ($item['persentase'] >= 40 ? 'bg-warning' : 'bg-danger') }}"
+                            role="progressbar"
+                            style="width: {{ $item['persentase'] }}%"
+                            aria-valuenow="{{ $item['persentase'] }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        ></div>
+                    </div>
+                @empty
+                    <p class="text-muted mb-0">Belum ada jenis pembayaran yang bisa ditampilkan.</p>
+                @endforelse
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('sbadmin2/vendor/chart.js/Chart.min.js') }}"></script>
+    <script>
+        function formatRupiah(value) {
+            return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
+        }
+
+        var trendCtx = document.getElementById('paymentTrendChart');
+        if (trendCtx) {
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: @json($chartLabels),
+                    datasets: [
+                        {
+                            label: 'Target Tagihan',
+                            data: @json($chartTargetTagihan),
+                            borderColor: 'rgba(78, 115, 223, 1)',
+                            backgroundColor: 'rgba(78, 115, 223, 0.15)',
+                            lineTension: 0.3,
+                            pointRadius: 3,
+                            fill: true
+                        },
+                        {
+                            label: 'Realisasi Pembayaran',
+                            data: @json($chartRealisasiPembayaran),
+                            borderColor: 'rgba(28, 200, 138, 1)',
+                            backgroundColor: 'rgba(28, 200, 138, 0.10)',
+                            lineTension: 0.3,
+                            pointRadius: 3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                callback: function(value) {
+                                    return formatRupiah(value);
+                                }
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                                return label + ': ' + formatRupiah(tooltipItem.yLabel);
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true
+                    }
+                }
+            });
+        }
+
+        var pieCtx = document.getElementById('statusTagihanChart');
+        if (pieCtx) {
+            new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lunas', 'Cicil', 'Belum Bayar'],
+                    datasets: [{
+                        data: [
+                            {{ $statusTagihan['lunas'] }},
+                            {{ $statusTagihan['cicil'] }},
+                            {{ $statusTagihan['belum_bayar'] }}
+                        ],
+                        backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                        hoverBackgroundColor: ['#17a673', '#dda20a', '#be2617'],
+                        hoverBorderColor: 'rgba(234, 236, 244, 1)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: false
+                    },
+                    cutoutPercentage: 65
+                }
+            });
+        }
+    </script>
+@endpush
+

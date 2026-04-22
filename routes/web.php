@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JenisPembayaranController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PembayaranController;
@@ -26,15 +27,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /* DASHBOARD (sementara) */
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        $role = auth()->user()->role ?? null;
-
-        if ($role === 'ortu') {
-            return view('dashboard2');
-        }
-
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
     Route::resource('users', UserController::class);
