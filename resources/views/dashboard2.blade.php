@@ -212,6 +212,162 @@
             min-width: 100%;
         }
     }
+
+
+
+
+
+    /* ... (styles dashboard2 yang sudah ada) ... */
+
+    /* ===== Riwayat Pembayaran ===== */
+    .pay-wrapper {
+        margin-top: 1.5rem;
+    }
+
+    .pay-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1.75rem;
+        width: 100%;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        animation: dashboard2FadeUp 0.4s ease both;
+    }
+
+    .pay-section-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #b0b3c4;
+        margin-bottom: 1.25rem;
+    }
+
+    .pay-timeline {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pay-row {
+        display: flex;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .pay-line-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 20px;
+        flex-shrink: 0;
+    }
+
+    .pay-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 6px;
+    }
+
+    .pay-connector {
+        width: 2px;
+        flex: 1;
+        background: #eceef4;
+        min-height: 16px;
+    }
+
+    .pay-item {
+        flex: 1;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pay-item-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 3px 0;
+    }
+
+    .pay-item-sub {
+        font-size: 12px;
+        margin: 0;
+        opacity: 0.75;
+    }
+
+    .pay-item-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .pay-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+    .pay-arrow {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    /* Color themes */
+    .pay-theme-blue  { background: #E6F1FB; }
+    .pay-theme-blue  .pay-item-name { color: #0C447C; }
+    .pay-theme-blue  .pay-item-sub  { color: #185FA5; }
+    .pay-theme-blue  .pay-arrow     { background: #378ADD; }
+    .pay-theme-blue  .pay-badge     { background: #B5D4F4; color: #0C447C; }
+    .dot-blue  { background: #378ADD; }
+
+    .pay-theme-teal  { background: #E1F5EE; }
+    .pay-theme-teal  .pay-item-name { color: #085041; }
+    .pay-theme-teal  .pay-item-sub  { color: #0F6E56; }
+    .pay-theme-teal  .pay-arrow     { background: #1D9E75; }
+    .pay-theme-teal  .pay-badge     { background: #9FE1CB; color: #085041; }
+    .dot-teal  { background: #1D9E75; }
+
+    .pay-theme-purple { background: #EEEDFE; }
+    .pay-theme-purple .pay-item-name { color: #3C3489; }
+    .pay-theme-purple .pay-item-sub  { color: #534AB7; }
+    .pay-theme-purple .pay-arrow     { background: #7F77DD; }
+    .pay-theme-purple .pay-badge     { background: #CECBF6; color: #3C3489; }
+    .dot-purple { background: #7F77DD; }
+
+    .pay-theme-amber { background: #FAEEDA; }
+    .pay-theme-amber .pay-item-name { color: #633806; }
+    .pay-theme-amber .pay-item-sub  { color: #854F0B; }
+    .pay-theme-amber .pay-arrow     { background: #BA7517; }
+    .pay-theme-amber .pay-badge     { background: #FAC775; color: #633806; }
+    .dot-amber { background: #fff; border: 2px solid #BA7517; }
+
+    .pay-theme-red   { background: #FCEBEB; }
+    .pay-theme-red   .pay-item-name { color: #791F1F; }
+    .pay-theme-red   .pay-item-sub  { color: #A32D2D; }
+    .pay-theme-red   .pay-arrow     { background: #E24B4A; }
+    .pay-theme-red   .pay-badge     { background: #F7C1C1; color: #791F1F; }
+    .dot-red   { background: #E24B4A; }
+
+    .pay-theme-pink  { background: #FBEAF0; }
+    .pay-theme-pink  .pay-item-name { color: #72243E; }
+    .pay-theme-pink  .pay-item-sub  { color: #993556; }
+    .pay-theme-pink  .pay-arrow     { background: #D4537E; }
+    .pay-theme-pink  .pay-badge     { background: #F4C0D1; color: #72243E; }
+    .dot-pink  { background: #D4537E; }
 </style>
 @endpush
 
@@ -223,10 +379,10 @@
 
     <div class="dashboard2-card">
         <div class="dashboard2-left">
-            <div class="dashboard2-avatar">JR</div>
+            <div class="dashboard2-avatar">OKM</div>
 
             {{-- nama siswa --}}
-            <div class="dashboard2-name">Jannie Regel</div>
+            <div class="dashboard2-name">Oka Kamarulsyah</div>
             <div class="dashboard2-stars">&starf;&starf;&starf;&starf;&starf;</div>
             <div class="dashboard2-rates">214 rates</div>
             <div class="dashboard2-trust-wrap">
@@ -335,5 +491,62 @@
             </div>
         </div>
     </div>
+
+    {{-- Tambahkan di @section('content'), di bawah dashboard2-card --}}
+
+<div class="pay-wrapper">
+    <div class="pay-card">
+        <div class="pay-section-label">Riwayat Pembayaran</div>
+
+        @php
+            $colorThemes = ['blue', 'teal', 'purple', 'amber', 'red', 'pink'];
+        @endphp
+
+
+@php
+    $colorThemes = ['blue', 'teal', 'purple', 'amber', 'red', 'pink'];
+
+    $pembayaran = [
+        ['nama_tagihan' => 'SPP Bulan Januari',     'tanggal' => '2025-01-15', 'nominal' => 250000, 'status' => 'Lunas'],
+        ['nama_tagihan' => 'SPP Bulan Februari',    'tanggal' => '2025-02-14', 'nominal' => 250000, 'status' => 'Lunas'],
+        ['nama_tagihan' => 'Biaya Ujian Semester',  'tanggal' => '2025-03-03', 'nominal' => 150000, 'status' => 'Lunas'],
+        ['nama_tagihan' => 'SPP Bulan Maret',       'tanggal' => '2025-03-20', 'nominal' => 250000, 'status' => 'Menunggu'],
+        ['nama_tagihan' => 'Biaya Ekskul',          'tanggal' => '2025-03-25', 'nominal' => 100000, 'status' => 'Gagal'],
+    ];
+@endphp
+
+        <div class="pay-timeline">
+            @foreach ($pembayaran as $index => $item)
+    @php
+        $theme = $colorThemes[$index % count($colorThemes)];
+        $isLast = $loop->last;
+    @endphp
+
+    <div class="pay-row">
+        <div class="pay-line-col">
+            <div class="pay-dot dot-{{ $theme }}"></div>
+            @unless ($isLast)
+                <div class="pay-connector"></div>
+            @endunless
+        </div>
+        <div class="pay-item pay-theme-{{ $theme }}">
+            <div>
+                <p class="pay-item-name">{{ $item['nama_tagihan'] }}</p>
+                <p class="pay-item-sub">
+                    {{ \Carbon\Carbon::parse($item['tanggal'])->format('d M Y') }}
+                    &nbsp;·&nbsp;
+                    Rp {{ number_format($item['nominal'], 0, ',', '.') }}
+                </p>
+            </div>
+            <div class="pay-item-right">
+                <span class="pay-badge">{{ $item['status'] }}</span>
+                <a href="#" class="pay-arrow">&#8599;</a>
+            </div>
+        </div>
+    </div>
+@endforeach
+        </div>
+    </div>
+</div>
 </div>
 @endsection

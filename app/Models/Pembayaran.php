@@ -20,7 +20,8 @@ class Pembayaran extends Model
         'status',
         'keterangan',
         'created_user',
-        'updated_user'
+        'updated_user',
+        'tagihan_id'
     ];
 
     protected $casts = [
@@ -38,4 +39,10 @@ class Pembayaran extends Model
     {
         return $this->belongsTo(JenisPembayaran::class, 'jenis_pembayaran_id');
     }
+
+    // Relasi: Pembayaran milik satu Tagihan
+    public function tagihan()
+    {
+        return $this->belongsTo(Tagihan::class, 'tagihan_id');  
+}
 }

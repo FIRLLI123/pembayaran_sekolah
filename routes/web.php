@@ -6,6 +6,7 @@ use App\Http\Controllers\JenisPembayaranController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\TagihanController;
 use App\Http\Controllers\UserController;
 
 /*
@@ -42,4 +43,16 @@ Route::middleware('auth')->group(function () {
     Route::resource('siswa', SiswaController::class);
     Route::resource('jenis-pembayaran', JenisPembayaranController::class);
     Route::resource('pembayaran', PembayaranController::class)->only(['index']);
+
+    Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
+    Route::get('/tagihan/{siswaId}/detail', [TagihanController::class, 'detail'])->name('tagihan.detail');
+    Route::get('/tagihan/{siswaId}/detail-ajax', [TagihanController::class, 'detailAjax'])->name('tagihan.detailAjax');
+    Route::post('/generate-spp', [TagihanController::class, 'generateSPP'])->name('generate.spp');
+    Route::post('/tagihan/{id}/bayar', [TagihanController::class, 'bayar'])
+    ->name('tagihan.bayar');
+    Route::post('/tagihan/multi-bayar/{siswa}', [TagihanController::class, 'multiBayar'])
+    ->name('tagihan.multiBayar');
+    Route::get('/tagihan/total-belum-lunas/{siswaId}', [TagihanController::class, 'totalBelumLunas']);
+    Route::get('/tagihan/custom', [TagihanController::class, 'createCustom'])->name('tagihan.custom');
+Route::post('/tagihan/custom', [TagihanController::class, 'storeCustom'])->name('tagihan.custom.store');
 });

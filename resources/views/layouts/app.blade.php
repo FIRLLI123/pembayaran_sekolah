@@ -110,19 +110,24 @@
                 Transaksi
             </div>
 
-            <li class="nav-item {{ request()->is('pembayaran*') ? 'active' : '' }}">
+            <li class="nav-item {{ request()->is('pembayaran*') ? 'active' : '' || request()->is('tagihan*') ? 'active' : '' }}">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTransaksi"
                     aria-expanded="false" aria-controls="collapseTransaksi">
                     <i class="fas fa-fw fa-money-bill-wave"></i>
                     <span>Transaksi</span>
                 </a>
 
-                <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') ? 'show' : '' }}" data-parent="#accordionSidebar">
+                <div id="collapseTransaksi" class="collapse {{ request()->is('pembayaran*') || request()->is('tagihan*') ? 'show' : '' }}" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
 
                         <a class="collapse-item {{ request()->is('pembayaran*') ? 'active' : '' }}"
                             href="{{ route('pembayaran.index') }}">
                             Pembayaran
+                        </a>
+
+                        <a class="collapse-item {{ request()->is('tagihan*') ? 'active' : '' }}"
+                            href="{{ route('tagihan.index') }}">
+                            Tagihan
                         </a>
 
                     </div>
