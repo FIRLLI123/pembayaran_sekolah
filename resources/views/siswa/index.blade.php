@@ -38,6 +38,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>Foto</th>
                             <th>NIS</th>
                             <th>Nama Siswa</th>
                             <th>Kelas</th>
@@ -50,6 +51,15 @@
                         @forelse ($siswa as $item)
                         <tr>
                             <td>{{ $siswa->firstItem() + $loop->index }}</td>
+                            <td>
+                                    @if($item->upload_foto)
+                                        <img src="{{ asset('storage/' . $item->upload_foto) }}"
+                                            alt="Foto"
+                                            style="width:40px; height:40px; object-fit:cover; border-radius:6px;">
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                            </td>
                             <td>{{ $item->nis }}</td>
                             <td>{{ $item->nama_siswa }}</td>
                             <td>{{ $item->kelas->nama_kelas ?? '-' }}</td>

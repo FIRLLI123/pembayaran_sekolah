@@ -19,7 +19,8 @@ class Siswa extends Model
         'alamat',
         'no_hp',
         'created_user',
-        'updated_user'
+        'updated_user',
+        'upload_foto'
     ];
 
     // Relasi: Siswa milik satu Kelas

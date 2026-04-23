@@ -42,6 +42,7 @@ class DashboardController extends Controller
             $totalTagihanAktifBulanIni = 0;
             $sisaTagihanBelumDibayar = 0;
             $jumlahTagihanMenunggu = 0;
+            $riwayatTagihan = null;
 
             if ($siswa) {
                 $totalTagihanAktifBulanIni = (int) Tagihan::query()
@@ -58,6 +59,13 @@ class DashboardController extends Controller
                     ->where('siswa_id', $siswa->id)
                     ->whereIn('status', ['belum_bayar', 'cicil'])
                     ->count();
+
+                $riwayatTagihan = Tagihan::with('jenisPembayaran')
+                    ->where('siswa_id', $siswa->id)
+                    ->orderByDesc('tanggal_tagihan')
+                    ->orderByDesc('id')
+                    ->paginate(5, ['*'], 'tagihan_page')
+                    ->withQueryString();
             }
 
             $statusRingkasan = $jumlahTagihanMenunggu > 0
@@ -83,6 +91,7 @@ class DashboardController extends Controller
                 'sisaTagihanBelumDibayar' => $sisaTagihanBelumDibayar,
                 'jumlahTagihanMenunggu' => $jumlahTagihanMenunggu,
                 'statusRingkasan' => $statusRingkasan,
+                'riwayatTagihan' => $riwayatTagihan,
             ]);
         }
 

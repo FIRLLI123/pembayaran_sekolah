@@ -21,13 +21,25 @@ class User extends Authenticatable
         'ortu_id',
     ];
 
-    public function siswa()
-{
-    return $this->belongsTo(Siswa::class);
-}
+    // ← Tambahkan ini
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-public function ortu()
-{
-    return $this->belongsTo(Ortu::class);
-}
+    // ← Tambahkan ini
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        // 'password' => 'hashed',
+    ];
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class);
+    }
+
+    public function ortu()
+    {
+        return $this->belongsTo(Ortu::class);
+    }
 }

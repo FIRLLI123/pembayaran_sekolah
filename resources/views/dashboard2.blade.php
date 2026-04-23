@@ -2,6 +2,267 @@
 
 @push('styles')
 <style>
+
+    /* === FOTO UPLOAD === */
+.avatar-wrapper {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 0.9rem auto;
+    cursor: pointer;
+}
+
+.avatar-img {
+    width: 84px;
+    height: 84px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.3);
+    display: block;
+}
+
+.avatar-circle {
+    margin-bottom: 0; /* override lama */
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .22s ease;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    gap: 3px;
+}
+
+.avatar-overlay svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+
+/* Modal foto */
+.foto-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.55);
+    z-index: 1060;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+}
+
+.foto-modal-backdrop.active {
+    display: flex;
+}
+
+.foto-modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 380px;
+    padding: 1.75rem 1.5rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    position: relative;
+    animation: modalPop .22s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes modalPop {
+    from { transform: scale(.88); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.foto-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #f1f5f9;
+    border: 0;
+    border-radius: 999px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: background .15s;
+}
+
+.foto-modal-close:hover { background: #e2e8f0; }
+
+.foto-modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.25rem;
+}
+
+.foto-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: #f8fafc;
+    position: relative;
+}
+
+.foto-drop-zone.dragover {
+    border-color: #2f80ed;
+    background: #eff6ff;
+}
+
+.foto-drop-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.foto-drop-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #e0eaff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    color: #2f80ed;
+}
+
+.foto-drop-text {
+    font-size: 0.88rem;
+    color: #475569;
+    margin: 0 0 0.25rem;
+}
+
+.foto-drop-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Preview setelah pilih foto */
+.foto-preview-wrap {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.foto-preview-wrap.visible {
+    display: flex;
+}
+
+.foto-preview-img {
+    width: 110px;
+    height: 110px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 3px solid #e0eaff;
+    box-shadow: 0 4px 16px rgba(47,128,237,.15);
+}
+
+.foto-preview-name {
+    font-size: 0.8rem;
+    color: #64748b;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.foto-modal-actions {
+    display: flex;
+    gap: .75rem;
+    margin-top: 1.25rem;
+}
+
+.btn-foto-cancel {
+    flex: 1;
+    padding: .6rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-weight: 600;
+    font-size: .88rem;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.btn-foto-cancel:hover { background: #f1f5f9; }
+
+.btn-foto-save {
+    flex: 1;
+    padding: .6rem;
+    border-radius: 10px;
+    border: 0;
+    background: linear-gradient(135deg, #1f4e96, #2f80ed);
+    color: #fff;
+    font-weight: 600;
+    font-size: .88rem;
+    cursor: pointer;
+    opacity: .5;
+    pointer-events: none;
+    transition: opacity .2s;
+}
+
+.btn-foto-save.ready {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-foto-save.loading {
+    opacity: .7;
+    pointer-events: none;
+}
+
+/* Toast notif */
+.foto-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1e293b;
+    color: #fff;
+    padding: .6rem 1.2rem;
+    border-radius: 999px;
+    font-size: .85rem;
+    font-weight: 500;
+    opacity: 0;
+    transition: all .3s ease;
+    z-index: 9999;
+    white-space: nowrap;
+}
+
+.foto-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.foto-toast.success { background: #166534; }
+.foto-toast.error   { background: #991b1b; }
     .profile-card {
         background: #fff;
         border: 1px solid #e8ecf3;
@@ -133,6 +394,111 @@
         margin-top: 0.5rem;
     }
 
+    .pay-card {
+        margin-top: 1.1rem;
+        background: #fff;
+        border: 1px solid #e8ecf3;
+        border-radius: 18px;
+        box-shadow: 0 6px 20px rgba(31, 45, 61, 0.06);
+        padding: 1.15rem 1.2rem;
+    }
+
+    .pay-section-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #5a6b85;
+        margin-bottom: 0.95rem;
+    }
+
+    .pay-timeline {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pay-row {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .pay-line-col {
+        width: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .pay-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        margin-top: 7px;
+    }
+
+    .pay-connector {
+        width: 2px;
+        min-height: 16px;
+        background: #e6ebf3;
+        flex: 1;
+    }
+
+    .pay-item {
+        flex: 1;
+        border-radius: 12px;
+        padding: 0.8rem 0.95rem;
+        margin-bottom: 0.65rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    .pay-item-name {
+        margin: 0 0 2px 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+    }
+
+    .pay-item-sub {
+        margin: 0;
+        font-size: 0.8rem;
+        opacity: 0.86;
+    }
+
+    .pay-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        border-radius: 20px;
+        padding: 4px 9px;
+        white-space: nowrap;
+    }
+
+    .pay-theme-green { background: #e8f8f1; }
+    .pay-theme-green .pay-item-name { color: #0b5e40; }
+    .pay-theme-green .pay-item-sub { color: #0f7550; }
+    .pay-theme-green .pay-badge { background: #bcebd7; color: #0b5e40; }
+    .dot-green { background: #1cc88a; }
+
+    .pay-theme-orange { background: #fff3e6; }
+    .pay-theme-orange .pay-item-name { color: #7d4a0b; }
+    .pay-theme-orange .pay-item-sub { color: #9c5a06; }
+    .pay-theme-orange .pay-badge { background: #ffd7ad; color: #7d4a0b; }
+    .dot-orange { background: #f6a12a; }
+
+    .pay-theme-red { background: #fdecec; }
+    .pay-theme-red .pay-item-name { color: #7a2020; }
+    .pay-theme-red .pay-item-sub { color: #9b2a2a; }
+    .pay-theme-red .pay-badge { background: #f6c4c4; color: #7a2020; }
+    .dot-red { background: #e74a3b; }
+
+    .pay-empty {
+        color: #7f8da3;
+        font-size: 0.9rem;
+    }
+
     @media (max-width: 991.98px) {
         .profile-card-body {
             grid-template-columns: 1fr;
@@ -172,11 +538,32 @@
     <div class="profile-card">
         <div class="profile-card-body">
             <div class="profile-left">
-                <div class="avatar-circle">{{ $initials ?: 'SW' }}</div>
-                <div class="student-name">{{ $siswa->nama_siswa ?? '-' }}</div>
-                <div class="student-meta">{{ optional($siswa->kelas)->nama_kelas ?? '-' }}</div>
-                <div class="student-meta">NIS: {{ $siswa->nis ?? '-' }}</div>
+    {{-- Avatar klik untuk ganti foto --}}
+    <div class="avatar-wrapper" onclick="openFotoModal()">
+        @if($siswa->upload_foto)
+            <img src="{{ asset('storage/' . $siswa->upload_foto) }}"
+                 alt="Foto {{ $siswa->nama_siswa }}"
+                 class="avatar-img"
+                 id="avatarImg">
+        @else
+            <div class="avatar-circle" id="avatarImg" style="width:84px;height:84px;border-radius:999px;background:rgba(255,255,255,0.16);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.65rem;font-weight:700;">
+                {{ $initials ?: 'SW' }}
             </div>
+        @endif
+
+        <div class="avatar-overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Ganti Foto
+        </div>
+    </div>
+
+    <div class="student-name">{{ $siswa->nama_siswa ?? '-' }}</div>
+    <div class="student-meta">{{ optional($siswa->kelas)->nama_kelas ?? '-' }}</div>
+    <div class="student-meta">NIS: {{ $siswa->nis ?? '-' }}</div>
+</div>
 
             <div class="profile-right">
                 <div class="section-title">Data Siswa</div>
@@ -246,6 +633,192 @@
             </div>
         </div>
     </div>
+
+    <div class="pay-card">
+        <div class="pay-section-label">Riwayat Pembayaran</div>
+        <div class="pay-timeline">
+            @forelse($riwayatTagihan as $item)
+                @php
+                    $isLast = $loop->last;
+                    $status = $item->status ?? 'belum_bayar';
+                    $theme = $status === 'lunas' ? 'green' : ($status === 'cicil' ? 'orange' : 'red');
+                    $statusLabel = $status === 'lunas' ? 'Lunas' : ($status === 'cicil' ? 'Cicil' : 'Belum Bayar');
+                    $periode = ($item->periode_bulan && $item->periode_tahun)
+                        ? \Carbon\Carbon::create()->month($item->periode_bulan)->translatedFormat('F') . ' ' . $item->periode_tahun
+                        : '-';
+                @endphp
+                <div class="pay-row">
+                    <div class="pay-line-col">
+                        <div class="pay-dot dot-{{ $theme }}"></div>
+                        @unless($isLast)
+                            <div class="pay-connector"></div>
+                        @endunless
+                    </div>
+                    <div class="pay-item pay-theme-{{ $theme }}">
+                        <div>
+                            <p class="pay-item-name">{{ $item->jenisPembayaran->nama_pembayaran ?? 'Tagihan' }}</p>
+                            <p class="pay-item-sub">
+                                {{ optional($item->tanggal_tagihan)->format('d M Y') ?? '-' }}
+                                | Periode {{ $periode }}
+                                | Tagihan {{ $formatRupiah($item->nominal_tagihan) }}
+                                | Sisa {{ $formatRupiah($item->sisa_tagihan) }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="pay-badge">{{ $statusLabel }}</span>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="pay-empty">Belum ada data tagihan.</div>
+            @endforelse
+        </div>
+
+        @if($riwayatTagihan)
+            <div class="mt-2">
+                {{ $riwayatTagihan->links() }}
+            </div>
+        @endif
+    </div>
 @endif
+
+
+{{-- MODAL GANTI FOTO --}}
+<div class="foto-modal-backdrop" id="fotoModalBackdrop" onclick="handleBackdropClick(event)">
+    <div class="foto-modal">
+        <button class="foto-modal-close" onclick="closeFotoModal()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+        </button>
+
+        <div class="foto-modal-title">Ganti Foto Profil</div>
+
+        <form id="fotoForm" action="{{ route('siswa.updateFoto') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <div class="foto-drop-zone" id="dropZone">
+                <input type="file" name="upload_foto" id="fotoInput"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       onchange="handleFotoChange(this)">
+                <div class="foto-drop-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <p class="foto-drop-text">Klik atau seret foto ke sini</p>
+                <p class="foto-drop-hint">JPG, JPEG, PNG, WEBP · Maks. 2 MB</p>
+            </div>
+
+            <div class="foto-preview-wrap" id="fotoPreviewWrap">
+                <img src="" alt="Preview" class="foto-preview-img" id="fotoPreviewImg">
+                <span class="foto-preview-name" id="fotoPreviewName"></span>
+            </div>
+
+            <div class="foto-modal-actions">
+                <button type="button" class="btn-foto-cancel" onclick="closeFotoModal()">Batal</button>
+                <button type="submit" class="btn-foto-save" id="btnFotoSave">Simpan Foto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- TOAST --}}
+<div class="foto-toast" id="fotoToast"></div>
 @endsection
 
+
+
+@push('scripts')
+<script>
+// ── Modal ──────────────────────────────────────────
+function openFotoModal() {
+    document.getElementById('fotoModalBackdrop').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFotoModal() {
+    document.getElementById('fotoModalBackdrop').classList.remove('active');
+    document.body.style.overflow = '';
+    resetFotoForm();
+}
+
+function handleBackdropClick(e) {
+    if (e.target === document.getElementById('fotoModalBackdrop')) closeFotoModal();
+}
+
+function resetFotoForm() {
+    document.getElementById('fotoInput').value = '';
+    document.getElementById('fotoPreviewWrap').classList.remove('visible');
+    document.getElementById('btnFotoSave').classList.remove('ready');
+}
+
+// ── File pick / drag ───────────────────────────────
+function handleFotoChange(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Validasi ukuran
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Ukuran file maksimal 2 MB.', 'error');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('fotoPreviewImg').src = e.target.result;
+        document.getElementById('fotoPreviewName').textContent = file.name;
+        document.getElementById('fotoPreviewWrap').classList.add('visible');
+        document.getElementById('btnFotoSave').classList.add('ready');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Drag & drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const input = document.getElementById('fotoInput');
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleFotoChange(input);
+    }
+});
+
+// ── Submit ─────────────────────────────────────────
+document.getElementById('fotoForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('btnFotoSave');
+    btn.classList.add('loading');
+    btn.textContent = 'Menyimpan...';
+});
+
+// ── Toast ──────────────────────────────────────────
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('fotoToast');
+    t.textContent = msg;
+    t.className = 'foto-toast ' + type;
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Tampilkan toast dari session Laravel
+@if(session('success'))
+    window.addEventListener('DOMContentLoaded', () => showToast("{{ session('success') }}", 'success'));
+@endif
+@if(session('error'))
+    window.addEventListener('DOMContentLoaded', () => showToast("{{ session('error') }}", 'error'));
+@endif
+
+// ESC untuk tutup modal
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFotoModal(); });
+</script>
+@endpush
