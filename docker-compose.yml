@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    image: php:8.2-cli
+    container_name: laravel_app
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: >
+      sh -c "
+      apt-get update &&
+      apt-get install -y git unzip curl libpng-dev libonig-dev libxml2-dev zip &&
+      docker-php-ext-install pdo_mysql &&
+      php artisan serve --host=0.0.0.0 --port=8000
+      "
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pembayaransekolah
+    ports:
+      - "3307:3306"

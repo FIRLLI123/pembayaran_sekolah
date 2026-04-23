@@ -14,7 +14,12 @@ class AddFkTagihanToPembayaran extends Migration
     public function up()
     {
         Schema::table('pembayaran', function (Blueprint $table) {
-    $table->foreign('tagihan_id')->references('id')->on('tagihan')->cascadeOnDelete();
+    $table->unsignedBigInteger('tagihan_id')->nullable();
+
+    $table->foreign('tagihan_id')
+          ->references('id')
+          ->on('tagihan')
+          ->onDelete('cascade');
 });
     }
 
