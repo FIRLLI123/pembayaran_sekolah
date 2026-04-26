@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JenisPembayaran;
+use App\Models\Kelas;
 use App\Models\Pembayaran;
 use App\Models\Siswa;
 use App\Models\Tagihan;
@@ -21,25 +22,49 @@ public function index(Request $request)
         return redirect()->route('ortu.riwayat');
     }
 
+    $filters = [
+        'siswa_id' => $request->get('siswa_id'),
+        'kelas_id' => $request->get('kelas_id'),
+    ];
+
     $query = \App\Models\Tagihan::with(['siswa', 'jenisPembayaran'])
+        ->filter($filters)
         ->select('siswa_id',
             DB::raw('SUM(nominal_tagihan) as total_nominal'),
             DB::raw('SUM(sisa_tagihan) as total_sisa')
         )
         ->groupBy('siswa_id');
 
-    // filter nama siswa
-    if ($request->filled('nama_siswa')) {
-        $namaSiswa = trim($request->nama_siswa);
-        $query->whereHas('siswa', function ($q) use ($namaSiswa) {
-            $q->where('nama_siswa', 'like', '%' . $namaSiswa . '%');
-        });
+    $tagihan = $query->latest()->paginate(10)->withQueryString();
+    $siswa   = Siswa::with('kelas')->orderBy('nama_siswa')->get();
+    $kelas   = Kelas::orderBy('nama_kelas')->get(['id', 'nama_kelas']);
+    $jenisPembayaranList = JenisPembayaran::orderBy('nama_pembayaran')->get(['id', 'nama_pembayaran']);
+    $sppDefaultNominal = (int) JenisPembayaran::where('tipe', 'rutin')
+        ->where('periode', 'bulanan')
+        ->value('nominal_default');
+    $waLinks = [];
+
+    $siswaIdsPadaHalaman = $tagihan->getCollection()
+        ->pluck('siswa_id')
+        ->filter()
+        ->values();
+
+    $tagihanBelumLunasBySiswa = Tagihan::with('jenisPembayaran')
+        ->whereIn('siswa_id', $siswaIdsPadaHalaman)
+        ->where('status', '!=', 'lunas')
+        ->orderBy('periode_tahun')
+        ->orderBy('periode_bulan')
+        ->orderBy('id')
+        ->get()
+        ->groupBy('siswa_id');
+
+    foreach ($tagihan->getCollection() as $row) {
+        $siswaRow = $row->siswa;
+        $detailBelumLunas = $tagihanBelumLunasBySiswa->get($row->siswa_id, collect());
+        $waLinks[$row->siswa_id] = $this->buildTagihanWhatsappLink($siswaRow, $detailBelumLunas);
     }
 
-    $tagihan = $query->latest()->paginate(10)->withQueryString();
-    $siswa   = Siswa::all();
-
-    return view('tagihan.index', compact('tagihan', 'siswa'));
+    return view('tagihan.index', compact('tagihan', 'siswa', 'kelas', 'filters', 'sppDefaultNominal', 'waLinks', 'jenisPembayaranList'));
 }
 
 public function detail(Request $request, $siswaId)
@@ -318,14 +343,36 @@ public function generateSPP(Request $request)
         'bulan'   => 'required|array|min:1',
         'bulan.*' => 'integer|between:1,12',
         'tahun'   => 'required|integer',
+        'kelas_id' => 'nullable|integer|exists:kelas,id',
+        'siswa_id' => 'nullable|integer|exists:siswa,id',
+        'nominal_custom' => 'nullable|numeric|min:1',
     ]);
 
     $tahun     = $request->tahun;
     $bulanList = $request->bulan;
+    $kelasId   = $request->kelas_id;
+    $siswaId   = $request->siswa_id;
+    $nominalCustom = $request->filled('nominal_custom')
+        ? (int) $request->nominal_custom
+        : null;
 
     $jenisSPP  = JenisPembayaran::where('tipe', 'rutin')
                     ->where('periode', 'bulanan')->get();
-    $siswaList = Siswa::all();
+    if ($jenisSPP->isEmpty()) {
+        return redirect()->back()->with('error', 'Jenis pembayaran SPP rutin bulanan belum tersedia.');
+    }
+
+    $siswaQuery = Siswa::query();
+    if ($kelasId) {
+        $siswaQuery->where('kelas_id', $kelasId);
+    }
+    if ($siswaId) {
+        $siswaQuery->where('id', $siswaId);
+    }
+    $siswaList = $siswaQuery->get();
+    if ($siswaList->isEmpty()) {
+        return redirect()->back()->with('error', 'Tidak ada siswa sesuai filter kelas/siswa yang dipilih.');
+    }
 
     $sudahAda  = []; // bulan yang skip
     $berhasil  = []; // bulan yang berhasil di-generate
@@ -353,8 +400,8 @@ public function generateSPP(Request $request)
                         'jatuh_tempo'         => now()->addDays(10),
                         'periode_bulan'       => $bulan,
                         'periode_tahun'       => $tahun,
-                        'nominal_tagihan'     => $jenis->nominal_default,
-                        'sisa_tagihan'        => $jenis->nominal_default,
+                        'nominal_tagihan'     => $nominalCustom ?? $jenis->nominal_default,
+                        'sisa_tagihan'        => $nominalCustom ?? $jenis->nominal_default,
                         'status'              => 'belum_bayar',
                         'created_user'        => Auth::user()->name ?? 'system',
                     ]);
@@ -388,6 +435,76 @@ public function generateSPP(Request $request)
     }
 
     return redirect()->back()->with('success', $pesan);
+}
+
+public function hapusGenerated(Request $request)
+{
+    if (auth()->check() && auth()->user()->role === 'ortu') {
+        abort(403, 'Akses ditolak');
+    }
+
+    $request->validate([
+        'bulan'   => 'required|array|min:1',
+        'bulan.*' => 'integer|between:1,12',
+        'tahun'   => 'required|integer',
+        'kelas_id' => 'nullable|integer|exists:kelas,id',
+        'siswa_id' => 'nullable|integer|exists:siswa,id',
+        'jenis_pembayaran_id' => 'nullable|integer|exists:jenis_pembayaran,id',
+    ]);
+
+    $tahun = (int) $request->tahun;
+    $bulanList = $request->bulan;
+    $kelasId = $request->kelas_id;
+    $siswaId = $request->siswa_id;
+    $jenisPembayaranId = $request->jenis_pembayaran_id;
+
+    $targetQuery = Tagihan::query()
+        ->where('periode_tahun', $tahun)
+        ->whereIn('periode_bulan', $bulanList);
+
+    if ($kelasId) {
+        $targetQuery->whereHas('siswa', function ($q) use ($kelasId) {
+            $q->where('kelas_id', $kelasId);
+        });
+    }
+
+    if ($siswaId) {
+        $targetQuery->where('siswa_id', $siswaId);
+    }
+
+    if ($jenisPembayaranId) {
+        $targetQuery->where('jenis_pembayaran_id', $jenisPembayaranId);
+    }
+
+    $targetTagihanIds = (clone $targetQuery)->pluck('id');
+    if ($targetTagihanIds->isEmpty()) {
+        return redirect()->back()->with('error', 'Tidak ada data tagihan generated yang cocok dengan filter.');
+    }
+
+    $tagihanSudahDibayarCount = Pembayaran::query()
+        ->whereIn('tagihan_id', $targetTagihanIds)
+        ->distinct('tagihan_id')
+        ->count('tagihan_id');
+
+    if ($tagihanSudahDibayarCount > 0) {
+        return redirect()->back()->with(
+            'error',
+            'Hapus dibatalkan. Ada ' . $tagihanSudahDibayarCount . ' tagihan pada filter ini yang sudah masuk pembayaran.'
+        );
+    }
+
+    DB::beginTransaction();
+    try {
+        $deleted = Tagihan::query()
+            ->whereIn('id', $targetTagihanIds)
+            ->delete();
+
+        DB::commit();
+        return redirect()->back()->with('success', 'Berhasil menghapus ' . $deleted . ' tagihan generated.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'Gagal menghapus generated tagihan.');
+    }
 }
 
 
@@ -612,6 +729,81 @@ public function storeCustom(Request $request)
         DB::rollBack();
         return back()->with('error', 'Gagal generate tagihan!');
     }
+}
+
+private function buildTagihanWhatsappLink(?Siswa $siswa, $detailBelumLunas): ?string
+{
+    if (!$siswa) {
+        return null;
+    }
+
+    $nomor = $this->normalizeWaNumber($siswa->no_hp ?? '');
+    if (!$nomor) {
+        return null;
+    }
+
+    $namaKelas = optional($siswa->kelas)->nama_kelas ?? '-';
+
+    $lines = [
+        'Assalamu\'alaikum Bapak/Ibu Wali Murid,',
+        '',
+        'Berikut informasi tagihan siswa:',
+        'NIS: ' . ($siswa->nis ?? '-'),
+        'Nama: ' . ($siswa->nama_siswa ?? '-'),
+        'Kelas: ' . $namaKelas,
+        '',
+        'Detail tagihan belum lunas:',
+    ];
+
+    if ($detailBelumLunas->isEmpty()) {
+        $lines[] = '- Semua tagihan saat ini sudah lunas.';
+    } else {
+        foreach ($detailBelumLunas as $item) {
+            $periode = '-';
+            if (!empty($item->periode_bulan) && !empty($item->periode_tahun)) {
+                $periode = Carbon::create()
+                    ->month((int) $item->periode_bulan)
+                    ->translatedFormat('F') . ' ' . $item->periode_tahun;
+            }
+
+            $lines[] = sprintf(
+                '- %s | Periode %s | Sisa Rp %s | Status %s',
+                $item->jenisPembayaran->nama_pembayaran ?? 'Tagihan',
+                $periode,
+                number_format((int) $item->sisa_tagihan, 0, ',', '.'),
+                str_replace('_', ' ', $item->status ?? '-')
+            );
+        }
+    }
+
+    $lines[] = '';
+    $lines[] = 'Terima kasih.';
+
+    $message = implode("\n", $lines);
+
+    return 'https://wa.me/' . $nomor . '?text=' . rawurlencode($message);
+}
+
+private function normalizeWaNumber(string $rawNumber): ?string
+{
+    $digits = preg_replace('/\D+/', '', $rawNumber);
+    if (!$digits) {
+        return null;
+    }
+
+    if (strpos($digits, '62') === 0) {
+        return $digits;
+    }
+
+    if (strpos($digits, '0') === 0) {
+        return '62' . substr($digits, 1);
+    }
+
+    if (strpos($digits, '8') === 0) {
+        return '62' . $digits;
+    }
+
+    return null;
 }
 
 }

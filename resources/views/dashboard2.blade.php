@@ -357,7 +357,7 @@
 
     .mini-stats {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0.8rem;
     }
 
@@ -505,10 +505,16 @@
         }
 
         .mini-stats {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .kv-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .mini-stats {
             grid-template-columns: 1fr;
         }
     }
@@ -518,6 +524,20 @@
 @section('content')
 @php
     $formatRupiah = fn($nominal) => 'Rp ' . number_format((int) $nominal, 0, ',', '.');
+    $namaBulan = [
+        1 => 'Januari',
+        2 => 'Februari',
+        3 => 'Maret',
+        4 => 'April',
+        5 => 'Mei',
+        6 => 'Juni',
+        7 => 'Juli',
+        8 => 'Agustus',
+        9 => 'September',
+        10 => 'Oktober',
+        11 => 'November',
+        12 => 'Desember',
+    ];
     $initials = collect(explode(' ', trim($siswa->nama_siswa ?? 'Siswa')))
         ->filter()
         ->take(2)
@@ -535,6 +555,43 @@
         Data siswa belum terhubung ke akun orang tua ini. Silakan hubungkan `siswa_id` pada akun user ortu.
     </div>
 @else
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ route('dashboard') }}" class="form-row align-items-end">
+                <div class="form-group col-md-3 mb-2">
+                    <label class="small text-muted mb-1">Filter Bulan</label>
+                    <select name="bulan" class="form-control">
+                        <option value="">Semua Bulan</option>
+                        @foreach($namaBulan as $nomor => $label)
+                            <option value="{{ $nomor }}" {{ (string) ($filters['bulan'] ?? '') === (string) $nomor ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <label class="small text-muted mb-1">Filter Tahun</label>
+                    <select name="tahun" class="form-control">
+                        <option value="">Semua Tahun</option>
+                        @foreach($filterTahunOptions as $tahun)
+                            <option value="{{ $tahun }}" {{ (string) ($filters['tahun'] ?? '') === (string) $tahun ? 'selected' : '' }}>
+                                {{ $tahun }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-6 mb-2 d-flex" style="gap:8px;">
+                    <button type="submit" class="btn btn-primary">Terapkan</button>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route('dashboard2.export', request()->query()) }}" class="btn btn-success">
+                        <i class="fas fa-file-excel mr-1"></i> Download Excel
+                    </a>
+                </div>
+            </form>
+            <small class="text-muted">Periode data aktif: {{ $labelPeriodeTagihan }}</small>
+        </div>
+    </div>
+
     <div class="profile-card">
         <div class="profile-card-body">
             <div class="profile-left">
@@ -617,7 +674,7 @@
                 <div class="section-title">Ringkasan Pembayaran</div>
                 <div class="mini-stats">
                     <div class="mini-stat">
-                        <small>Total tagihan aktif bulan ini</small>
+                        <small>Total tagihan periode {{ strtolower($labelPeriodeTagihan) }}</small>
                         <strong>{{ $formatRupiah($totalTagihanAktifBulanIni) }}</strong>
                     </div>
                     <div class="mini-stat">
@@ -628,6 +685,10 @@
                         <small>Jumlah tagihan menunggu</small>
                         <strong>{{ number_format((int) $jumlahTagihanMenunggu, 0, ',', '.') }} tagihan</strong>
                     </div>
+                    <div class="mini-stat">
+                        <small>Total pembayaran masuk</small>
+                        <strong>{{ $formatRupiah($totalPembayaranMasuk) }}</strong>
+                    </div>
                 </div>
                 <div class="status-pill">{{ $statusRingkasan }}</div>
             </div>
@@ -635,7 +696,7 @@
     </div>
 
     <div class="pay-card">
-        <div class="pay-section-label">Riwayat Pembayaran</div>
+        <div class="pay-section-label">Riwayat Tagihan ({{ $labelPeriodeTagihan }})</div>
         <div class="pay-timeline">
             @forelse($riwayatTagihan as $item)
                 @php

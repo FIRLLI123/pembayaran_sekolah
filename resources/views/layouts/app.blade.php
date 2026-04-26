@@ -160,6 +160,29 @@
         </div>
     </div>
 </li>
+
+<div class="sidebar-heading">
+    Information
+</div>
+
+<li class="nav-item {{ request()->is('information*') ? 'active' : '' }}">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInformation"
+        aria-expanded="false" aria-controls="collapseInformation">
+        <i class="fas fa-fw fa-info-circle"></i>
+        <span>Information</span>
+    </a>
+
+    <div id="collapseInformation"
+         class="collapse {{ request()->is('information*') ? 'show' : '' }}"
+         data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item {{ request()->routeIs('information.riwayat-siswa.index') ? 'active' : '' }}"
+               href="{{ route('information.riwayat-siswa.index') }}">
+                Riwayat Siswa
+            </a>
+        </div>
+    </div>
+</li>
             @else
                 <hr class="sidebar-divider">
                 <div class="sidebar-heading">

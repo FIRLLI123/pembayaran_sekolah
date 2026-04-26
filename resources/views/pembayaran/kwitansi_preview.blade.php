@@ -30,6 +30,7 @@
             color: #93c5fd;
             text-decoration: none;
             font-size: 13px;
+            margin-left: 14px;
         }
         .viewer {
             height: calc(100% - 48px);
@@ -42,13 +43,30 @@
 <body>
     <div class="topbar">
         <div class="filename">{{ $filename }}</div>
-        <a class="download-link"
-           href="data:application/pdf;base64,{{ $pdfBase64 }}"
-           download="{{ $filename }}">
-            Download PDF
-        </a>
+        <div>
+            <a class="download-link" id="openDirectLink" href="#" target="_blank" rel="noopener">Buka PDF</a>
+            <a class="download-link" id="downloadLink" href="#" download="{{ $filename }}">Download PDF</a>
+        </div>
     </div>
 
-    <iframe class="viewer" src="data:application/pdf;base64,{{ $pdfBase64 }}"></iframe>
+    <iframe class="viewer" id="pdfViewer"></iframe>
+
+    <script>
+        (function () {
+            var base64 = @json($pdfBase64);
+            var byteChars = atob(base64);
+            var byteNumbers = new Array(byteChars.length);
+            for (var i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
+            }
+            var byteArray = new Uint8Array(byteNumbers);
+            var blob = new Blob([byteArray], { type: 'application/pdf' });
+            var blobUrl = URL.createObjectURL(blob);
+
+            document.getElementById('pdfViewer').src = blobUrl;
+            document.getElementById('openDirectLink').href = blobUrl;
+            document.getElementById('downloadLink').href = blobUrl;
+        })();
+    </script>
 </body>
 </html>

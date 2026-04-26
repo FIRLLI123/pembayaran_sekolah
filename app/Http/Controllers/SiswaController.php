@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Siswa;
 use App\Models\Kelas;
+use App\Models\RiwayatKelasSiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SiswaController extends Controller
@@ -12,6 +14,10 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $kelas = Kelas::all();
+        $siswaSemua = Siswa::with('kelas')
+            ->orderBy('kelas_id')
+            ->orderBy('nama_siswa')
+            ->get();
 
         $query = Siswa::with('kelas');
 
@@ -28,7 +34,7 @@ class SiswaController extends Controller
 
         $siswa = $query->latest()->paginate(10)->withQueryString();
 
-        return view('siswa.index', compact('siswa', 'kelas'));
+        return view('siswa.index', compact('siswa', 'kelas', 'siswaSemua'));
     }
 
     public function create()
@@ -144,4 +150,53 @@ class SiswaController extends Controller
 
     return back()->with('success', 'Foto profil berhasil diperbarui.');
 }
+
+    public function generateKenaikan(Request $request)
+    {
+        $validated = $request->validate([
+            'kelas_baru_id' => 'required|exists:kelas,id',
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'required|integer|exists:siswa,id',
+        ]);
+
+        $kelasBaruId = (int) $validated['kelas_baru_id'];
+        $siswaTerpilih = Siswa::whereIn('id', $validated['siswa_ids'])->get(['id', 'kelas_id']);
+
+        $siswaNaikKelas = $siswaTerpilih->filter(function ($item) use ($kelasBaruId) {
+            return (int) $item->kelas_id !== $kelasBaruId;
+        });
+
+        if ($siswaNaikKelas->isEmpty()) {
+            return redirect()->route('siswa.index')
+                ->with('error', 'Tidak ada siswa yang diproses karena semua sudah berada di kelas tujuan.');
+        }
+
+        $now = now();
+        $userId = auth()->id();
+        $historyRows = $siswaNaikKelas->map(function ($item) use ($kelasBaruId, $now, $userId) {
+            return [
+                'siswa_id' => $item->id,
+                'kelas_lama_id' => $item->kelas_id,
+                'kelas_baru_id' => $kelasBaruId,
+                'tanggal_pindah' => $now,
+                'created_user' => $userId ? (string) $userId : null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        })->values()->all();
+
+        DB::transaction(function () use ($historyRows, $kelasBaruId, $siswaNaikKelas, $now, $userId) {
+            RiwayatKelasSiswa::insert($historyRows);
+
+            Siswa::whereIn('id', $siswaNaikKelas->pluck('id'))
+                ->update([
+                    'kelas_id' => $kelasBaruId,
+                    'updated_user' => $userId,
+                    'updated_at' => $now,
+                ]);
+        });
+
+        return redirect()->route('siswa.index')
+            ->with('success', 'Kenaikan kelas berhasil diproses untuk ' . $siswaNaikKelas->count() . ' siswa.');
+    }
 }

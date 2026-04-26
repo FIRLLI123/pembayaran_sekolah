@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -30,6 +31,19 @@ class Tagihan extends Model
         'tanggal_tagihan' => 'date',
         'jatuh_tempo' => 'date',
     ];
+
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when(!empty($filters['siswa_id']), function (Builder $q) use ($filters) {
+                $q->where('siswa_id', $filters['siswa_id']);
+            })
+            ->when(!empty($filters['kelas_id']), function (Builder $q) use ($filters) {
+                $q->whereHas('siswa', function (Builder $siswa) use ($filters) {
+                    $siswa->where('kelas_id', $filters['kelas_id']);
+                });
+            });
+    }
 
     /*
     |--------------------------------------------------------------------------

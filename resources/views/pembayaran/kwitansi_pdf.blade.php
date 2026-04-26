@@ -4,50 +4,53 @@
     <meta charset="UTF-8">
     <title>Kwitansi Pembayaran</title>
     <style>
+        @page {
+            margin: 12px 14px;
+        }
         * { box-sizing: border-box; }
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
+            font-size: 10.5px;
             color: #1f2937;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: #fff;
         }
         .kwitansi {
-            border: 2px solid #0f172a;
-            border-radius: 10px;
+            border: 1.5px solid #0f172a;
+            border-radius: 8px;
             overflow: hidden;
         }
         .header {
             background: #0f172a;
             color: #fff;
-            padding: 14px 16px;
+            padding: 10px 12px;
         }
         .header-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
             letter-spacing: 1px;
             margin: 0;
         }
         .header-subtitle {
-            margin: 4px 0 0 0;
-            font-size: 11px;
+            margin: 2px 0 0 0;
+            font-size: 9px;
             opacity: 0.9;
         }
         .content {
-            padding: 14px 16px 10px 16px;
+            padding: 10px 12px 8px 12px;
         }
         .meta {
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             border-collapse: collapse;
         }
         .meta td {
-            padding: 3px 0;
+            padding: 2px 0;
             vertical-align: top;
         }
         .meta td.label {
-            width: 115px;
+            width: 92px;
             color: #4b5563;
         }
         .meta td.sep {
@@ -55,21 +58,21 @@
         }
         .amount-box {
             border: 1.5px dashed #334155;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            padding: 7px 9px;
+            margin-bottom: 7px;
             background: #f8fafc;
         }
         .amount-title {
-            font-size: 11px;
+            font-size: 9px;
             color: #64748b;
-            margin: 0 0 4px 0;
+            margin: 0 0 2px 0;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             font-weight: 700;
         }
         .amount-value {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
             margin: 0;
             color: #0f172a;
@@ -80,14 +83,54 @@
             color: #334155;
         }
         .note {
-            margin-top: 6px;
-            font-size: 10px;
+            margin-top: 4px;
+            font-size: 8.5px;
             color: #6b7280;
             font-style: italic;
         }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+        .summary-table td {
+            border: 1px solid #dbe3ee;
+            padding: 3px 5px;
+            font-size: 9px;
+        }
+        .summary-table td.label {
+            background: #f8fafc;
+            color: #334155;
+            width: 62%;
+        }
+        .detail-title {
+            margin: 6px 0 4px 0;
+            font-size: 9px;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+        .detail-table th,
+        .detail-table td {
+            border: 1px solid #dbe3ee;
+            padding: 3px 4px;
+            font-size: 8.5px;
+        }
+        .detail-table th {
+            background: #f8fafc;
+            color: #334155;
+            text-align: left;
+        }
         .signatures {
             width: 100%;
-            margin-top: 18px;
+            margin-top: 10px;
             border-collapse: collapse;
         }
         .signatures td {
@@ -97,21 +140,21 @@
             padding: 0 8px;
         }
         .sign-title {
-            font-size: 11px;
-            margin-bottom: 48px;
+            font-size: 9px;
+            margin-bottom: 30px;
             color: #334155;
         }
         .sign-name {
             border-top: 1px solid #111827;
-            padding-top: 4px;
+            padding-top: 3px;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 9px;
         }
         .footer {
             border-top: 1px solid #cbd5e1;
-            margin-top: 12px;
-            padding: 8px 16px 10px 16px;
-            font-size: 10px;
+            margin-top: 8px;
+            padding: 5px 10px 6px 10px;
+            font-size: 8px;
             color: #64748b;
             text-align: center;
         }
@@ -173,6 +216,54 @@
                 <p class="amount-title">Jumlah Pembayaran Diterima</p>
                 <p class="amount-value">Rp {{ number_format($nominal, 0, ',', '.') }}</p>
             </div>
+
+            <table class="summary-table">
+                <tr>
+                    <td class="label">Total Tagihan Awal</td>
+                    <td>Rp {{ number_format((int) ($totalTagihanAwal ?? 0), 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Total Cicilan Sebelumnya</td>
+                    <td>Rp {{ number_format((int) ($totalCicilanSebelumnya ?? 0), 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Pembayaran Kwitansi Ini</td>
+                    <td>Rp {{ number_format($nominal, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="label"><strong>Sisa Setelah Pembayaran Ini</strong></td>
+                    <td><strong>Rp {{ number_format((int) ($sisaSetelahPembayaranIni ?? 0), 0, ',', '.') }}</strong></td>
+                </tr>
+            </table>
+
+            <p class="detail-title">Rincian Cicilan Sebelumnya</p>
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Tanggal</th>
+                        <th style="width: 35%;">Nominal</th>
+                        <th style="width: 30%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse(($riwayatCicilanSebelumnya ?? []) as $cicilan)
+                        <tr>
+                            <td>{{ optional($cicilan->tanggal_bayar)->format('d-m-Y') ?? '-' }}</td>
+                            <td>Rp {{ number_format((int) $cicilan->nominal_bayar, 0, ',', '.') }}</td>
+                            <td>{{ strtoupper($cicilan->status ?? '-') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3">Belum ada cicilan sebelumnya.</td>
+                        </tr>
+                    @endforelse
+                    @if(!empty($jumlahCicilanDisembunyikan))
+                        <tr>
+                            <td colspan="3">... dan {{ $jumlahCicilanDisembunyikan }} cicilan sebelumnya lainnya.</td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
 
             <div class="note">Dokumen ini sah sebagai bukti pembayaran yang telah diverifikasi.</div>
 

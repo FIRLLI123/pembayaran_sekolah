@@ -10,15 +10,29 @@
     <form method="GET" action="{{ route('tagihan.index') }}" class="mb-3">
         <div class="row">
             <div class="col-md-4">
-                <input type="text"
-                       name="nama_siswa"
-                       class="form-control"
-                       placeholder="Cari nama siswa..."
-                       value="{{ request('nama_siswa') }}">
+                <select name="siswa_id" class="form-control">
+                    <option value="">Semua Siswa</option>
+                    @foreach($siswa as $s)
+                        <option value="{{ $s->id }}" {{ (string)($filters['siswa_id'] ?? '') === (string)$s->id ? 'selected' : '' }}>
+                            {{ $s->nama_siswa }} ({{ $s->nis }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <select name="kelas_id" class="form-control">
+                    <option value="">Semua Kelas</option>
+                    @foreach($kelas as $k)
+                        <option value="{{ $k->id }}" {{ (string)($filters['kelas_id'] ?? '') === (string)$k->id ? 'selected' : '' }}>
+                            {{ $k->nama_kelas }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="col-md-2">
-                <button class="btn btn-primary">Cari</button>
+                <button class="btn btn-primary">Terapkan</button>
                 <a href="{{ route('tagihan.index') }}" class="btn btn-secondary" style="marginLeft:10px;">Reset</a>
             </div>
         </div>
@@ -27,6 +41,10 @@
     {{-- 🔥 BUTTON GENERATE --}}
     <button class="btn btn-success" onclick="openGenerateModal()">
     ⚡ Generate SPP
+</button>
+
+<button class="btn btn-danger" style="margin-left:10px;" onclick="openDeleteGenerateModal()">
+    Hapus Generated
 </button>
 
 <button class="btn btn-primary" style="marginLeft:10px;"
@@ -68,12 +86,30 @@
             <td>Rp {{ number_format($item->total_nominal, 0, ',', '.') }}</td>
             <td>Rp {{ number_format($item->total_sisa, 0, ',', '.') }}</td>
             <td class="text-center">
-            <button class="data-table-action-btn"
-                onclick="bukaDetail({{ $item->siswa_id }}, '{{ $item->siswa->nama_siswa ?? '-' }}')"
-                data-siswa-id="{{ $item->siswa_id }}"
-                title="Detail">
-                👁️
-            </button>
+    <button class="data-table-action-btn"
+            onclick="bukaDetail({{ $item->siswa_id }}, '{{ $item->siswa->nama_siswa ?? '-' }}')"
+            data-siswa-id="{{ $item->siswa_id }}"
+            title="Detail">
+        <i class="fas fa-eye"></i>
+    </button>
+    @if(!empty($waLinks[$item->siswa_id]))
+        <a class="data-table-action-btn data-table-action-edit"
+           href="{{ $waLinks[$item->siswa_id] }}"
+           target="_blank"
+           rel="noopener"
+           title="Kirim WhatsApp"
+           style="margin-left:6px;">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    @else
+        <button class="data-table-action-btn"
+                type="button"
+                disabled
+                title="Nomor HP siswa belum tersedia"
+                style="margin-left:6px; opacity:.5;">
+            <i class="fab fa-whatsapp"></i>
+        </button>
+    @endif
 </td>
         </tr>
         @empty
@@ -149,6 +185,40 @@
 
         {{-- Body --}}
         <div class="modal-body px-4 py-4" style="color: #1a1a1a;">
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold mb-2">Kelas</label>
+              <select name="kelas_id" id="generate_kelas_id" class="form-control" onchange="filterGenerateSiswaByKelas()">
+                <option value="">Semua Kelas</option>
+                @foreach($kelas as $k)
+                    <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                @endforeach
+              </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold mb-2">Siswa</label>
+              <select name="siswa_id" id="generate_siswa_id" class="form-control">
+                <option value="">Semua Siswa (Rekomendasi)</option>
+                @foreach($siswa as $s)
+                    <option value="{{ $s->id }}" data-kelas-id="{{ $s->kelas_id }}">
+                        {{ $s->nama_siswa }} ({{ $s->nis }})
+                    </option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold mb-2">Nominal SPP</label>
+            <input type="number"
+                   name="nominal_custom"
+                   class="form-control form-control-lg"
+                   value="{{ (int) ($sppDefaultNominal ?? 0) }}"
+                   min="1">
+            <small class="text-muted">Default dari master jenis pembayaran, bisa diubah sesuai kebutuhan generate.</small>
+          </div>
 
           {{-- Tahun --}}
           <div class="mb-4">
@@ -296,6 +366,91 @@
 </div>
 
 </div>
+
+{{-- Modal Hapus Generated Tagihan --}}
+<div class="modal fade" id="modalHapusGenerated" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <form method="POST" action="{{ route('tagihan.hapusGenerated') }}">
+      @csrf
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header px-4 py-3 border-bottom" style="background: #f8f9fa;">
+          <h5 class="modal-title fw-bold mb-0">Hapus Generated Tagihan</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body px-4 py-4">
+          <div class="alert alert-warning py-2">
+            Hapus akan dibatalkan jika ada salah satu tagihan terpilih yang sudah masuk ke pembayaran.
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold mb-2">Tahun</label>
+              <input type="number" name="tahun" class="form-control" value="{{ now()->year }}" min="2020" max="2099" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold mb-2">Kelas</label>
+              <select name="kelas_id" id="delete_kelas_id" class="form-control" onchange="filterDeleteSiswaByKelas()">
+                <option value="">Semua Kelas</option>
+                @foreach($kelas as $k)
+                    <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-semibold mb-2">Siswa</label>
+              <select name="siswa_id" id="delete_siswa_id" class="form-control">
+                <option value="">Semua Siswa (Rekomendasi)</option>
+                @foreach($siswa as $s)
+                    <option value="{{ $s->id }}" data-kelas-id="{{ $s->kelas_id }}">
+                        {{ $s->nama_siswa }} ({{ $s->nis }})
+                    </option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold mb-2">Jenis Pembayaran</label>
+              <select name="jenis_pembayaran_id" class="form-control">
+                <option value="">Semua Jenis Pembayaran</option>
+                @foreach($jenisPembayaranList as $j)
+                    <option value="{{ $j->id }}">{{ $j->nama_pembayaran }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label fw-semibold mb-2">Pilih Bulan</label>
+            <div class="d-flex gap-2 mb-3">
+              <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="deleteCheckAllBulan()">Pilih Semua</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary px-3" onclick="deleteUncheckAllBulan()" style="margin-left:10px;">Hapus Semua</button>
+            </div>
+            <div class="row g-3">
+              @php $bulanNama = ['', 'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; @endphp
+              @for($i=1; $i<=12; $i++)
+                <div class="col-6 col-md-4 mb-2">
+                  <div class="form-check border rounded px-3 py-2">
+                    <input class="form-check-input" type="checkbox" name="bulan[]" value="{{ $i }}" id="delete_bulan_{{ $i }}">
+                    <label class="form-check-label" for="delete_bulan_{{ $i }}">{{ $bulanNama[$i] }}</label>
+                  </div>
+                </div>
+              @endfor
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer px-4 py-3 border-top" style="background: #f8f9fa;">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger px-4">Hapus Generated</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts') 
@@ -419,8 +574,70 @@ let statusBulan = {}; // { 1: true, 2: false, ... }
 
 function openGenerateModal() {
     let tahun = document.getElementById('input_tahun').value;
+    filterGenerateSiswaByKelas();
     loadStatusBulan(tahun);
     new bootstrap.Modal(document.getElementById('modalGenerate')).show();
+}
+
+function openDeleteGenerateModal() {
+    filterDeleteSiswaByKelas();
+    new bootstrap.Modal(document.getElementById('modalHapusGenerated')).show();
+}
+
+function filterGenerateSiswaByKelas() {
+    const kelasSelect = document.getElementById('generate_kelas_id');
+    const siswaSelect = document.getElementById('generate_siswa_id');
+    if (!kelasSelect || !siswaSelect) return;
+
+    const kelasId = kelasSelect.value;
+    let hasSelectedVisible = false;
+
+    for (let i = 0; i < siswaSelect.options.length; i++) {
+        const opt = siswaSelect.options[i];
+        if (!opt.value) {
+            opt.hidden = false;
+            continue;
+        }
+        const siswaKelasId = opt.getAttribute('data-kelas-id');
+        const visible = !kelasId || siswaKelasId === kelasId;
+        opt.hidden = !visible;
+
+        if (opt.selected && visible) {
+            hasSelectedVisible = true;
+        }
+    }
+
+    if (!hasSelectedVisible && siswaSelect.value) {
+        siswaSelect.value = '';
+    }
+}
+
+function filterDeleteSiswaByKelas() {
+    const kelasSelect = document.getElementById('delete_kelas_id');
+    const siswaSelect = document.getElementById('delete_siswa_id');
+    if (!kelasSelect || !siswaSelect) return;
+
+    const kelasId = kelasSelect.value;
+    let hasSelectedVisible = false;
+
+    for (let i = 0; i < siswaSelect.options.length; i++) {
+        const opt = siswaSelect.options[i];
+        if (!opt.value) {
+            opt.hidden = false;
+            continue;
+        }
+        const siswaKelasId = opt.getAttribute('data-kelas-id');
+        const visible = !kelasId || siswaKelasId === kelasId;
+        opt.hidden = !visible;
+
+        if (opt.selected && visible) {
+            hasSelectedVisible = true;
+        }
+    }
+
+    if (!hasSelectedVisible && siswaSelect.value) {
+        siswaSelect.value = '';
+    }
 }
 
 function loadStatusBulan(tahun) {
@@ -461,11 +678,19 @@ function renderChecklist() {
 }
 
 function checkAllBulan() {
-    document.querySelectorAll('[name="bulan[]"]').forEach(cb => cb.checked = true);
+    document.querySelectorAll('#modalGenerate [name="bulan[]"]').forEach(cb => cb.checked = true);
 }
 
 function uncheckAllBulan() {
-    document.querySelectorAll('[name="bulan[]"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#modalGenerate [name="bulan[]"]').forEach(cb => cb.checked = false);
+}
+
+function deleteCheckAllBulan() {
+    document.querySelectorAll('#modalHapusGenerated [name="bulan[]"]').forEach(cb => cb.checked = true);
+}
+
+function deleteUncheckAllBulan() {
+    document.querySelectorAll('#modalHapusGenerated [name="bulan[]"]').forEach(cb => cb.checked = false);
 }
 
 
@@ -623,3 +848,6 @@ Swal.fire({
 }
 </style>
 @endpush
+
+
+

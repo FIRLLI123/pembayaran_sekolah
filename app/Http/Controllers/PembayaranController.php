@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kelas;
 use App\Models\Pembayaran;
+use App\Models\Siswa;
 use App\Models\Tagihan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -10,17 +12,55 @@ use Illuminate\Support\Facades\DB;
 
 class PembayaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (auth()->check() && auth()->user()->role === 'ortu') {
             abort(403, 'Akses ditolak');
         }
 
+        $filters = $this->extractFilters($request);
+
         $pembayaran = Pembayaran::with(['siswa', 'jenisPembayaran'])
+            ->filter($filters)
             ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        $filterSiswa = Siswa::with('kelas')
+            ->orderBy('nama_siswa')
+            ->get(['id', 'nama_siswa', 'nis', 'kelas_id']);
+
+        $filterKelas = Kelas::orderBy('nama_kelas')
+            ->get(['id', 'nama_kelas']);
+
+        return view('pembayaran.index', compact('pembayaran', 'filterSiswa', 'filterKelas', 'filters'));
+    }
+
+    public function export(Request $request)
+    {
+        if (auth()->check() && auth()->user()->role === 'ortu') {
+            abort(403, 'Akses ditolak');
+        }
+
+        $filters = $this->extractFilters($request);
+
+        $pembayaran = Pembayaran::with(['siswa.kelas', 'jenisPembayaran'])
+            ->filter($filters)
+            ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('id')
             ->get();
 
-        return view('pembayaran.index', compact('pembayaran'));
+        $filename = 'data-pembayaran-' . now()->format('Ymd_His') . '.xls';
+        $html = view('exports.pembayaran_index', [
+            'pembayaran' => $pembayaran,
+            'filters' => $filters,
+        ])->render();
+
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function verifikasi(Request $request)
@@ -86,6 +126,8 @@ class PembayaranController extends Controller
             $tagihan->save();
 
             $pembayaran->status = ((int) $tagihan->sisa_tagihan === 0) ? 'lunas' : 'cicil';
+            $catatanApprove = 'Disetujui admin pada ' . now()->format('d-m-Y H:i');
+            $pembayaran->keterangan = trim(($pembayaran->keterangan ? $pembayaran->keterangan . ' | ' : '') . $catatanApprove);
             $pembayaran->updated_user = auth()->user()->name ?? 'admin';
             $pembayaran->save();
 
@@ -117,6 +159,8 @@ class PembayaranController extends Controller
             $keteranganReject = trim((string) $request->alasan_reject);
             if ($keteranganReject !== '') {
                 $pembayaran->keterangan = trim(($pembayaran->keterangan ? $pembayaran->keterangan . ' | ' : '') . 'Ditolak: ' . $keteranganReject);
+            } else {
+                $pembayaran->keterangan = trim(($pembayaran->keterangan ? $pembayaran->keterangan . ' | ' : '') . 'Ditolak admin tanpa keterangan');
             }
 
             $pembayaran->status = 'ditolak';
@@ -140,17 +184,50 @@ class PembayaranController extends Controller
 
         $pembayaran = Pembayaran::with(['siswa', 'jenisPembayaran', 'tagihan'])->findOrFail($id);
 
-        if ($pembayaran->status !== 'lunas') {
-            return back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah lunas.');
+        if (!in_array($pembayaran->status, ['lunas', 'cicil'], true)) {
+            return back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah di-approve.');
         }
 
         if ($user->role === 'ortu' && (int) $user->siswa_id !== (int) $pembayaran->siswa_id) {
             abort(403, 'Akses ditolak');
         }
 
+        $riwayatCicilanSebelumnya = Pembayaran::with('tagihan')
+            ->where('tagihan_id', $pembayaran->tagihan_id)
+            ->whereIn('status', ['lunas', 'cicil'])
+            ->where(function ($q) use ($pembayaran) {
+                $q->whereDate('tanggal_bayar', '<', $pembayaran->tanggal_bayar)
+                    ->orWhere(function ($q2) use ($pembayaran) {
+                        $q2->whereDate('tanggal_bayar', $pembayaran->tanggal_bayar)
+                            ->where('id', '<', $pembayaran->id);
+                    });
+            })
+            ->orderByDesc('tanggal_bayar')
+            ->orderByDesc('id')
+            ->get();
+
+        $maksCicilanDitampilkan = 4;
+        $riwayatCicilanDitampilkan = $riwayatCicilanSebelumnya
+            ->take($maksCicilanDitampilkan)
+            ->sortBy([
+                ['tanggal_bayar', 'asc'],
+                ['id', 'asc'],
+            ])
+            ->values();
+        $jumlahCicilanDisembunyikan = max(0, $riwayatCicilanSebelumnya->count() - $maksCicilanDitampilkan);
+
+        $totalCicilanSebelumnya = (int) $riwayatCicilanSebelumnya->sum('nominal_bayar');
+        $totalTagihanAwal = (int) optional($pembayaran->tagihan)->nominal_tagihan;
+        $sisaSetelahPembayaranIni = (int) optional($pembayaran->tagihan)->sisa_tagihan;
+
         $pdf = Pdf::loadView('pembayaran.kwitansi_pdf', [
             'pembayaran' => $pembayaran,
             'petugas' => $pembayaran->updated_user ?: ($pembayaran->created_user ?: 'Admin'),
+            'totalTagihanAwal' => $totalTagihanAwal,
+            'riwayatCicilanSebelumnya' => $riwayatCicilanDitampilkan,
+            'jumlahCicilanDisembunyikan' => $jumlahCicilanDisembunyikan,
+            'totalCicilanSebelumnya' => $totalCicilanSebelumnya,
+            'sisaSetelahPembayaranIni' => $sisaSetelahPembayaranIni,
         ])->setPaper('a5', 'portrait');
 
         $filename = 'kwitansi-' . str_pad((string) $pembayaran->id, 5, '0', STR_PAD_LEFT) . '.pdf';
@@ -168,5 +245,31 @@ class PembayaranController extends Controller
         if (!$user || $user->role !== 'admin') {
             abort(403, 'Hanya admin yang dapat mengakses halaman ini.');
         }
+    }
+
+    private function extractFilters(Request $request): array
+    {
+        $tanggalMulai = $request->get('tanggal_mulai');
+        $tanggalSelesai = $request->get('tanggal_selesai');
+
+        if ($tanggalMulai && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $tanggalMulai)) {
+            $tanggalMulai = null;
+        }
+        if ($tanggalSelesai && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $tanggalSelesai)) {
+            $tanggalSelesai = null;
+        }
+
+        if ($tanggalMulai && $tanggalSelesai && $tanggalMulai > $tanggalSelesai) {
+            [$tanggalMulai, $tanggalSelesai] = [$tanggalSelesai, $tanggalMulai];
+        }
+
+        return [
+            'siswa_id' => $request->get('siswa_id'),
+            'kelas_id' => $request->get('kelas_id'),
+            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_selesai' => $tanggalSelesai,
+            'status' => $request->get('status'),
+            'metode_bayar' => $request->get('metode_bayar'),
+        ];
     }
 }

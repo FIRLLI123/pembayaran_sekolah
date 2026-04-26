@@ -4,317 +4,194 @@
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Data Pembayaran</h1>
 
-    <div class="card mb-3">
+    <div class="card shadow mb-3">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <input
-                        type="text"
-                        id="searchInput"
-                        class="form-control"
-                        placeholder="Cari nama siswa / NIS / jenis pembayaran / keterangan"
-                    >
+            <form method="GET" action="{{ route('pembayaran.index') }}" id="filterFormPembayaran">
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label class="small text-muted mb-1">Per Siswa</label>
+                        <select name="siswa_id" id="filterSiswa" class="form-control">
+                            <option value="">Semua Siswa</option>
+                            @foreach($filterSiswa as $siswa)
+                                <option
+                                    value="{{ $siswa->id }}"
+                                    data-kelas-id="{{ $siswa->kelas_id }}"
+                                    {{ (string) ($filters['siswa_id'] ?? '') === (string) $siswa->id ? 'selected' : '' }}
+                                >
+                                    {{ $siswa->nama_siswa }} ({{ $siswa->nis }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label class="small text-muted mb-1">Per Kelas</label>
+                        <select name="kelas_id" id="filterKelas" class="form-control">
+                            <option value="">Semua Kelas</option>
+                            @foreach($filterKelas as $kelas)
+                                <option value="{{ $kelas->id }}" {{ (string) ($filters['kelas_id'] ?? '') === (string) $kelas->id ? 'selected' : '' }}>
+                                    {{ $kelas->nama_kelas }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label class="small text-muted mb-1">Tanggal Mulai</label>
+                        <input type="date" name="tanggal_mulai" class="form-control" value="{{ $filters['tanggal_mulai'] ?? '' }}">
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label class="small text-muted mb-1">Tanggal Selesai</label>
+                        <input type="date" name="tanggal_selesai" class="form-control" value="{{ $filters['tanggal_selesai'] ?? '' }}">
+                    </div>
+
+                    <div class="form-group col-md-1">
+                        <label class="small text-muted mb-1">Status</label>
+                        <select name="status" class="form-control">
+                            <option value="">Semua</option>
+                            <option value="lunas" {{ ($filters['status'] ?? '') === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="cicil" {{ ($filters['status'] ?? '') === 'cicil' ? 'selected' : '' }}>Cicil</option>
+                            <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="ditolak" {{ ($filters['status'] ?? '') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label class="small text-muted mb-1">Metode Bayar</label>
+                        <select name="metode_bayar" class="form-control">
+                            <option value="">Semua</option>
+                            <option value="cash" {{ ($filters['metode_bayar'] ?? '') === 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="transfer" {{ ($filters['metode_bayar'] ?? '') === 'transfer' ? 'selected' : '' }}>Transfer</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="col-md-3 mb-2">
-                    <select id="metodeFilter" class="form-control">
-                        <option value="">Semua Metode Bayar</option>
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <div>
+                        <button type="submit" class="btn btn-primary btn-sm mr-2">Terapkan Filter</button>
+                        <a href="{{ route('pembayaran.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                    </div>
+                    <div>
+                        <a href="{{ route('pembayaran.export', request()->query()) }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-excel mr-1"></i> Export Excel
+                        </a>
+                    </div>
                 </div>
-
-                <div class="col-md-3 mb-2">
-                    <select id="statusFilter" class="form-control">
-                        <option value="">Semua Status</option>
-                        <option value="lunas">Lunas</option>
-                        <option value="cicil">Cicil</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2 mb-2 d-flex">
-                    <button type="button" id="resetBtn" class="btn btn-secondary w-100">Reset</button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-hover mb-0">
                 <thead>
                     <tr>
                         <th style="width: 70px;">No</th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="tanggal">
-                                Tanggal Bayar <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="nama">
-                                Nama Siswa <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="nis">
-                                NIS <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="jenis">
-                                Jenis Pembayaran <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="nominal">
-                                Nominal <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="metode">
-                                Metode Bayar <span class="sort-icon"></span>
-                            </button>
-                        </th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-dark sort-btn" data-sort="status">
-                                Status <span class="sort-icon"></span>
-                            </button>
-                        </th>
+                        <th>Tanggal Bayar</th>
+                        <th>Nama Siswa</th>
+                        <th>NIS</th>
+                        <th>Kelas</th>
+                        <th>Jenis Pembayaran</th>
+                        <th>Nominal</th>
+                        <th>Metode</th>
+                        <th>Status</th>
                         <th>Keterangan</th>
                         <th class="text-center">Kwitansi</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody"></tbody>
+                <tbody>
+                    @forelse($pembayaran as $item)
+                        <tr>
+                            <td>{{ $pembayaran->firstItem() + $loop->index }}</td>
+                            <td>{{ optional($item->tanggal_bayar)->format('d-m-Y') ?? '-' }}</td>
+                            <td>{{ $item->siswa->nama_siswa ?? '-' }}</td>
+                            <td>{{ $item->siswa->nis ?? '-' }}</td>
+                            <td>{{ $item->siswa->kelas->nama_kelas ?? '-' }}</td>
+                            <td>{{ $item->jenisPembayaran->nama_pembayaran ?? '-' }}</td>
+                            <td>Rp {{ number_format((int) $item->nominal_bayar, 0, ',', '.') }}</td>
+                            <td class="text-capitalize">{{ $item->metode_bayar ?? '-' }}</td>
+                            <td>
+                                @if($item->status === 'lunas')
+                                    <span class="badge badge-success">Lunas</span>
+                                @elseif($item->status === 'cicil')
+                                    <span class="badge badge-warning">Cicil</span>
+                                @elseif($item->status === 'pending')
+                                    <span class="badge badge-info">Pending</span>
+                                @elseif($item->status === 'ditolak')
+                                    <span class="badge badge-danger">Ditolak</span>
+                                @else
+                                    <span class="badge badge-secondary">{{ $item->status }}</span>
+                                @endif
+                            </td>
+                            <td>{{ $item->keterangan ?: '-' }}</td>
+                            <td class="text-center">
+                                @if(in_array($item->status, ['lunas', 'cicil'], true))
+                                    <a href="{{ route('pembayaran.kwitansi', $item->id) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" title="Lihat Kwitansi PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="11" class="text-center text-muted">Data pembayaran belum tersedia.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
 
         <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-            <small class="text-muted mb-2 mb-md-0" id="tableInfo"></small>
-            <nav aria-label="Pagination">
-                <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
-            </nav>
+            <small class="text-muted mb-2 mb-md-0">
+                Menampilkan {{ $pembayaran->firstItem() ?? 0 }} - {{ $pembayaran->lastItem() ?? 0 }} dari {{ $pembayaran->total() }} data
+            </small>
+            {{ $pembayaran->links() }}
         </div>
     </div>
 </div>
+@endsection
 
-@php
-    $rows = $pembayaran->map(function ($item) {
-        return [
-            'tanggal' => optional($item->tanggal_bayar)->format('Y-m-d') ?? '',
-            'tanggal_label' => optional($item->tanggal_bayar)->format('d-m-Y') ?? '-',
-            'nama' => $item->siswa->nama_siswa ?? '-',
-            'nis' => $item->siswa->nis ?? '-',
-            'jenis' => $item->jenisPembayaran->nama_pembayaran ?? '-',
-            'nominal' => (int) $item->nominal_bayar,
-            'nominal_label' => 'Rp ' . number_format((int) $item->nominal_bayar, 0, ',', '.'),
-            'metode' => $item->metode_bayar ?? '-',
-            'status' => $item->status ?? '-',
-            'keterangan' => $item->keterangan ?: '-',
-            'kwitansi_url' => route('pembayaran.kwitansi', $item->id),
-        ];
-    })->values();
-@endphp
-
+@push('scripts')
 <script>
     (function () {
-        const allRows = @json($rows);
-        const state = {
-            search: '',
-            metode: '',
-            status: '',
-            sortBy: 'tanggal',
-            sortDir: 'desc',
-            page: 1,
-            perPage: 10
-        };
+        var kelasSelect = document.getElementById('filterKelas');
+        var siswaSelect = document.getElementById('filterSiswa');
 
-        const searchInput = document.getElementById('searchInput');
-        const metodeFilter = document.getElementById('metodeFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const resetBtn = document.getElementById('resetBtn');
-        const tableBody = document.getElementById('tableBody');
-        const tableInfo = document.getElementById('tableInfo');
-        const pagination = document.getElementById('pagination');
-        const sortButtons = document.querySelectorAll('.sort-btn');
+        function filterSiswaByKelas() {
+            if (!kelasSelect || !siswaSelect) return;
 
-        function normalizeText(value) {
-            return String(value || '').toLowerCase();
-        }
+            var kelasId = kelasSelect.value;
+            var hasSelected = false;
 
-        function compareValues(a, b, field) {
-            if (field === 'nominal') {
-                return (a.nominal || 0) - (b.nominal || 0);
-            }
-            return normalizeText(a[field]).localeCompare(normalizeText(b[field]), 'id');
-        }
-
-        function getFilteredRows() {
-            let rows = allRows.filter((row) => {
-                const searchTarget = [
-                    row.nama, row.nis, row.jenis, row.keterangan, row.metode, row.status, row.tanggal_label
-                ].join(' ').toLowerCase();
-
-                const passSearch = !state.search || searchTarget.includes(state.search);
-                const passMetode = !state.metode || row.metode === state.metode;
-                const passStatus = !state.status || row.status === state.status;
-
-                return passSearch && passMetode && passStatus;
-            });
-
-            rows.sort((a, b) => {
-                const result = compareValues(a, b, state.sortBy);
-                return state.sortDir === 'asc' ? result : -result;
-            });
-
-            return rows;
-        }
-
-        function renderTable(rows) {
-            const total = rows.length;
-            const totalPages = Math.max(1, Math.ceil(total / state.perPage));
-            if (state.page > totalPages) state.page = totalPages;
-
-            const start = (state.page - 1) * state.perPage;
-            const pageRows = rows.slice(start, start + state.perPage);
-
-            tableBody.innerHTML = '';
-
-            if (pageRows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Data pembayaran belum tersedia.</td></tr>';
-            } else {
-                pageRows.forEach((row, idx) => {
-                    const kwitansiCell = row.status === 'lunas'
-                        ? `<a href="${row.kwitansi_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" title="Lihat Kwitansi PDF"><i class="fas fa-file-pdf"></i></a>`
-                        : '<span class="text-muted">-</span>';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${start + idx + 1}</td>
-                        <td>${row.tanggal_label}</td>
-                        <td>${row.nama}</td>
-                        <td>${row.nis}</td>
-                        <td>${row.jenis}</td>
-                        <td>${row.nominal_label}</td>
-                        <td class="text-capitalize">${row.metode}</td>
-                        <td class="text-capitalize">${row.status}</td>
-                        <td>${row.keterangan}</td>
-                        <td class="text-center">${kwitansiCell}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
-            }
-
-            const from = total === 0 ? 0 : start + 1;
-            const to = total === 0 ? 0 : Math.min(start + state.perPage, total);
-            tableInfo.textContent = `Menampilkan ${from}-${to} dari ${total} data`;
-
-            renderPagination(totalPages);
-            updateSortIcons();
-        }
-
-        function createPageItem(label, page, disabled, active) {
-            const li = document.createElement('li');
-            li.className = `page-item${disabled ? ' disabled' : ''}${active ? ' active' : ''}`;
-
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'page-link';
-            btn.textContent = label;
-            btn.disabled = disabled;
-            btn.addEventListener('click', () => {
-                if (!disabled) {
-                    state.page = page;
-                    render();
+            for (var i = 0; i < siswaSelect.options.length; i++) {
+                var opt = siswaSelect.options[i];
+                if (!opt.value) {
+                    opt.hidden = false;
+                    continue;
                 }
-            });
 
-            li.appendChild(btn);
-            return li;
-        }
+                var siswaKelas = opt.getAttribute('data-kelas-id');
+                var visible = !kelasId || siswaKelas === kelasId;
+                opt.hidden = !visible;
 
-        function renderPagination(totalPages) {
-            pagination.innerHTML = '';
-
-            pagination.appendChild(createPageItem('«', state.page - 1, state.page === 1, false));
-
-            const maxButtons = 5;
-            let startPage = Math.max(1, state.page - Math.floor(maxButtons / 2));
-            let endPage = startPage + maxButtons - 1;
-            if (endPage > totalPages) {
-                endPage = totalPages;
-                startPage = Math.max(1, endPage - maxButtons + 1);
+                if (opt.selected && visible) {
+                    hasSelected = true;
+                }
             }
 
-            for (let p = startPage; p <= endPage; p += 1) {
-                pagination.appendChild(createPageItem(String(p), p, false, p === state.page));
+            if (!hasSelected && siswaSelect.value) {
+                siswaSelect.value = '';
             }
-
-            pagination.appendChild(createPageItem('»', state.page + 1, state.page === totalPages, false));
         }
 
-        function updateSortIcons() {
-            sortButtons.forEach((btn) => {
-                const icon = btn.querySelector('.sort-icon');
-                const field = btn.dataset.sort;
-                if (field === state.sortBy) {
-                    icon.innerHTML = state.sortDir === 'asc' ? '&uarr;' : '&darr;';
-                } else {
-                    icon.innerHTML = '';
-                }
-            });
+        if (kelasSelect) {
+            kelasSelect.addEventListener('change', filterSiswaByKelas);
         }
 
-        function render() {
-            const rows = getFilteredRows();
-            renderTable(rows);
-        }
-
-        searchInput.addEventListener('input', () => {
-            state.search = normalizeText(searchInput.value.trim());
-            state.page = 1;
-            render();
-        });
-
-        metodeFilter.addEventListener('change', () => {
-            state.metode = metodeFilter.value;
-            state.page = 1;
-            render();
-        });
-
-        statusFilter.addEventListener('change', () => {
-            state.status = statusFilter.value;
-            state.page = 1;
-            render();
-        });
-
-        resetBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            metodeFilter.value = '';
-            statusFilter.value = '';
-            state.search = '';
-            state.metode = '';
-            state.status = '';
-            state.sortBy = 'tanggal';
-            state.sortDir = 'desc';
-            state.page = 1;
-            render();
-        });
-
-        sortButtons.forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const field = btn.dataset.sort;
-                if (state.sortBy === field) {
-                    state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-                } else {
-                    state.sortBy = field;
-                    state.sortDir = field === 'tanggal' || field === 'nominal' ? 'desc' : 'asc';
-                }
-                state.page = 1;
-                render();
-            });
-        });
-
-        render();
+        filterSiswaByKelas();
     })();
 </script>
-@endsection
+@endpush

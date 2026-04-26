@@ -6,9 +6,15 @@
     <h1 class="h3 mb-2 text-gray-800">Data Siswa</h1>
     <p class="data-table-kicker mb-3">Manajemen data siswa sekolah</p>
 
-    <a href="{{ route('siswa.create') }}" class="btn btn-primary mb-3 data-table-add-btn">
-        <span class="data-table-plus-icon">+</span> Tambah Siswa
-    </a>
+    <div class="d-flex align-items-center flex-wrap mb-3" style="gap: 10px;">
+        <a href="{{ route('siswa.create') }}" class="btn btn-primary data-table-add-btn">
+            <span class="data-table-plus-icon">+</span> Tambah Siswa
+        </a>
+
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modalGenerateKenaikan">
+            Generate Kenaikan Kelas
+        </button>
+    </div>
 
     <form method="GET" action="{{ route('siswa.index') }}" class="mb-3 d-flex align-items-center flex-wrap" style="gap: 10px;">
     <input type="text"
@@ -84,7 +90,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 Tidak ada data siswa
                             </td>
                         </tr>
@@ -114,6 +120,78 @@
     </div>
 
 </div>
+
+<div class="modal fade" id="modalGenerateKenaikan" tabindex="-1" role="dialog" aria-labelledby="modalGenerateKenaikanLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('siswa.generateKenaikan') }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalGenerateKenaikanLabel">Generate Kenaikan Kelas</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="filter_kelas_asal" class="font-weight-bold">Filter Kelas Asal</label>
+                            <select id="filter_kelas_asal" class="form-control">
+                                <option value="">-- Semua Kelas Asal --</option>
+                                @foreach ($kelas as $k)
+                                    <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Filter ini membantu memilih siswa lebih cepat.</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="kelas_baru_id" class="font-weight-bold">Naik ke Kelas</label>
+                            <select name="kelas_baru_id" id="kelas_baru_id" class="form-control" required>
+                                <option value="">-- Pilih Kelas Tujuan --</option>
+                                @foreach ($kelas as $k)
+                                    <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center flex-wrap mb-2" style="gap: 8px;">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnPilihSemua">Pilih Semua</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnHapusSemua">Hapus Semua</button>
+                        <small class="text-muted">Terpilih: <span id="jumlahSiswaTerpilih">0</span> siswa</small>
+                    </div>
+
+                    <div class="border rounded p-2" style="max-height: 320px; overflow-y: auto;">
+                        @forelse ($siswaSemua as $item)
+                            <div class="form-check siswa-option py-1">
+                                <input
+                                    class="form-check-input siswa-checkbox"
+                                    type="checkbox"
+                                    name="siswa_ids[]"
+                                    value="{{ $item->id }}"
+                                    id="siswa_{{ $item->id }}"
+                                    data-kelas-id="{{ $item->kelas_id }}">
+                                <label class="form-check-label" for="siswa_{{ $item->id }}">
+                                    {{ $item->nis }} - {{ $item->nama_siswa }}
+                                    <span class="text-muted">(Kelas: {{ $item->kelas->nama_kelas ?? '-' }})</span>
+                                </label>
+                            </div>
+                        @empty
+                            <p class="text-muted mb-0">Belum ada data siswa.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Proses Kenaikan Kelas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -136,5 +214,70 @@ function confirmDelete(id) {
         }
     });
 }
+
+(function () {
+    const filterKelasAsal = document.getElementById('filter_kelas_asal');
+    const btnPilihSemua = document.getElementById('btnPilihSemua');
+    const btnHapusSemua = document.getElementById('btnHapusSemua');
+    const jumlahSiswaTerpilih = document.getElementById('jumlahSiswaTerpilih');
+
+    if (!filterKelasAsal || !btnPilihSemua || !btnHapusSemua || !jumlahSiswaTerpilih) {
+        return;
+    }
+
+    const getCheckboxes = () => Array.from(document.querySelectorAll('.siswa-checkbox'));
+
+    const getVisibleCheckboxes = () => {
+        return getCheckboxes().filter((checkbox) => {
+            const wrapper = checkbox.closest('.siswa-option');
+            return wrapper && wrapper.style.display !== 'none';
+        });
+    };
+
+    const updateJumlahTerpilih = () => {
+        const totalTerpilih = getCheckboxes().filter((checkbox) => checkbox.checked).length;
+        jumlahSiswaTerpilih.textContent = totalTerpilih;
+    };
+
+    const applyFilterKelas = () => {
+        const kelasId = filterKelasAsal.value;
+
+        getCheckboxes().forEach((checkbox) => {
+            const wrapper = checkbox.closest('.siswa-option');
+            if (!wrapper) return;
+
+            const match = !kelasId || checkbox.dataset.kelasId === kelasId;
+            wrapper.style.display = match ? 'block' : 'none';
+
+            if (!match) {
+                checkbox.checked = false;
+            }
+        });
+
+        updateJumlahTerpilih();
+    };
+
+    filterKelasAsal.addEventListener('change', applyFilterKelas);
+
+    btnPilihSemua.addEventListener('click', function () {
+        getVisibleCheckboxes().forEach((checkbox) => {
+            checkbox.checked = true;
+        });
+        updateJumlahTerpilih();
+    });
+
+    btnHapusSemua.addEventListener('click', function () {
+        getCheckboxes().forEach((checkbox) => {
+            checkbox.checked = false;
+        });
+        updateJumlahTerpilih();
+    });
+
+    getCheckboxes().forEach((checkbox) => {
+        checkbox.addEventListener('change', updateJumlahTerpilih);
+    });
+
+    applyFilterKelas();
+})();
 </script>
 @endpush

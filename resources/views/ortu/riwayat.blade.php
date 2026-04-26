@@ -247,8 +247,18 @@
                         $statusLabel = 'Pending';
                     } elseif ($item->status === 'lunas') {
                         $statusLabel = 'Lunas';
+                    } elseif ($item->status === 'ditolak') {
+                        $statusLabel = 'Ditolak';
                     } else {
                         $statusLabel = 'Cicil';
+                    }
+
+                    if ($item->status === 'lunas' || $item->status === 'cicil') {
+                        $keteranganVerifikasi = $item->keterangan ?: 'Pembayaran telah di-approve admin.';
+                    } elseif ($item->status === 'ditolak') {
+                        $keteranganVerifikasi = $item->keterangan ?: 'Pembayaran ditolak admin.';
+                    } else {
+                        $keteranganVerifikasi = $item->keterangan ?: 'Menunggu verifikasi admin.';
                     }
                 @endphp
                 <div class="pay-row">
@@ -269,15 +279,18 @@
                                     | <a href="{{ asset($item->upload_foto) }}" target="_blank" rel="noopener">Bukti</a>
                                 @endif
                             </p>
+                            <p class="pay-item-sub mb-0">
+                                Keterangan: {{ $keteranganVerifikasi }}
+                            </p>
                         </div>
                         <div class="d-flex align-items-center">
                             <span class="pay-badge">{{ $statusLabel }}</span>
-                            @if($item->status === 'lunas')
+                            @if(in_array($item->status, ['lunas', 'cicil'], true))
                                 <a href="{{ route('pembayaran.kwitansi', $item->id) }}"
                                    target="_blank"
                                    rel="noopener"
                                    class="receipt-link"
-                                   title="Lihat Kwitansi">
+                                    title="Lihat Kwitansi">
                                     <i class="fas fa-file-invoice"></i>
                                 </a>
                             @endif

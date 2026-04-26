@@ -5,11 +5,126 @@
     $formatRupiah = function ($nominal) {
         return 'Rp ' . number_format((int) $nominal, 0, ',', '.');
     };
+    $namaBulan = [
+        1 => 'Januari',
+        2 => 'Februari',
+        3 => 'Maret',
+        4 => 'April',
+        5 => 'Mei',
+        6 => 'Juni',
+        7 => 'Juli',
+        8 => 'Agustus',
+        9 => 'September',
+        10 => 'Oktober',
+        11 => 'November',
+        12 => 'Desember',
+    ];
 @endphp
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard Pembayaran Sekolah</h1>
     <span class="text-muted small">Update: {{ now()->translatedFormat('d F Y H:i') }}</span>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filter Dashboard</h6>
+    </div>
+    <div class="card-body pb-2">
+        <form method="GET" action="{{ route('dashboard') }}" id="dashboardFilterForm">
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Per Siswa</label>
+                    <select name="siswa_id" id="filterSiswa" class="form-control">
+                        <option value="">Semua Siswa</option>
+                        @foreach($filterSiswa as $siswa)
+                            <option
+                                value="{{ $siswa->id }}"
+                                data-kelas-id="{{ $siswa->kelas_id }}"
+                                {{ (string) ($filters['siswa_id'] ?? '') === (string) $siswa->id ? 'selected' : '' }}
+                            >
+                                {{ $siswa->nama_siswa }} ({{ $siswa->nis }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Per Kelas</label>
+                    <select name="kelas_id" id="filterKelas" class="form-control">
+                        <option value="">Semua Kelas</option>
+                        @foreach($filterKelas as $kelas)
+                            <option value="{{ $kelas->id }}" {{ (string) ($filters['kelas_id'] ?? '') === (string) $kelas->id ? 'selected' : '' }}>
+                                {{ $kelas->nama_kelas }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Bulan</label>
+                    <select name="bulan" class="form-control">
+                        <option value="">Semua Bulan</option>
+                        @foreach($namaBulan as $nomor => $label)
+                            <option value="{{ $nomor }}" {{ (string) ($filters['bulan'] ?? '') === (string) $nomor ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Tahun</label>
+                    <select name="tahun" class="form-control">
+                        <option value="">Semua Tahun</option>
+                        @foreach($filterTahunOptions as $tahun)
+                            <option value="{{ $tahun }}" {{ (string) ($filters['tahun'] ?? '') === (string) $tahun ? 'selected' : '' }}>
+                                {{ $tahun }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Periode Mulai</label>
+                    <input type="date" name="periode_mulai" class="form-control" value="{{ $filters['periode_mulai'] ?? '' }}">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Periode Selesai</label>
+                    <input type="date" name="periode_selesai" class="form-control" value="{{ $filters['periode_selesai'] ?? '' }}">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="small text-muted mb-1">Status Tagihan</label>
+                    <select name="status" class="form-control">
+                        <option value="">Semua Status</option>
+                        <option value="lunas" {{ ($filters['status'] ?? '') === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                        <option value="cicil" {{ ($filters['status'] ?? '') === 'cicil' ? 'selected' : '' }}>Cicil</option>
+                        <option value="belum_bayar" {{ ($filters['status'] ?? '') === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-block">Terapkan Filter</button>
+                </div>
+            </div>
+            <input type="hidden" name="preset_periode" id="presetPeriodeInput" value="{{ $filters['preset_periode'] ?? '' }}">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div class="btn-group btn-group-sm mb-2 mb-md-0" role="group">
+                    <button type="button" class="btn btn-outline-primary preset-btn {{ ($filters['preset_periode'] ?? '') === 'bulan_ini' ? 'active' : '' }}" data-preset="bulan_ini">Bulan Ini</button>
+                    <button type="button" class="btn btn-outline-primary preset-btn {{ ($filters['preset_periode'] ?? '') === '3_bulan' ? 'active' : '' }}" data-preset="3_bulan">3 Bulan</button>
+                    <button type="button" class="btn btn-outline-primary preset-btn {{ ($filters['preset_periode'] ?? '') === '1_tahun' ? 'active' : '' }}" data-preset="1_tahun">1 Tahun</button>
+                </div>
+                <div class="d-flex">
+                    <a
+                        href="{{ route('dashboard.export', request()->query()) }}"
+                        class="btn btn-success btn-sm mr-2"
+                    >
+                        <i class="fas fa-file-excel mr-1"></i> Export Excel
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mr-2" id="clearPresetBtn">Clear Preset</button>
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">Reset Filter</a>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                Preset periode akan otomatis mengisi range tanggal.
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="row">
@@ -180,6 +295,73 @@
 @push('scripts')
     <script src="{{ asset('sbadmin2/vendor/chart.js/Chart.min.js') }}"></script>
     <script>
+        (function () {
+            var kelasSelect = document.getElementById('filterKelas');
+            var siswaSelect = document.getElementById('filterSiswa');
+            var selectedSiswa = "{{ $filters['siswa_id'] ?? '' }}";
+
+            function filterSiswaByKelas() {
+                if (!kelasSelect || !siswaSelect) return;
+                var kelasId = kelasSelect.value;
+                var hasSelected = false;
+
+                for (var i = 0; i < siswaSelect.options.length; i++) {
+                    var opt = siswaSelect.options[i];
+                    if (!opt.value) {
+                        opt.hidden = false;
+                        continue;
+                    }
+                    var siswaKelas = opt.getAttribute('data-kelas-id');
+                    var visible = !kelasId || siswaKelas === kelasId;
+                    opt.hidden = !visible;
+
+                    if (opt.value === siswaSelect.value && visible) {
+                        hasSelected = true;
+                    }
+                }
+
+                if (!hasSelected && siswaSelect.value) {
+                    siswaSelect.value = '';
+                }
+            }
+
+            if (kelasSelect) {
+                kelasSelect.addEventListener('change', filterSiswaByKelas);
+            }
+
+            if (siswaSelect) {
+                siswaSelect.value = selectedSiswa;
+            }
+            filterSiswaByKelas();
+        })();
+
+        (function () {
+            var form = document.getElementById('dashboardFilterForm');
+            var presetInput = document.getElementById('presetPeriodeInput');
+            var presetButtons = document.querySelectorAll('.preset-btn');
+            var clearPresetBtn = document.getElementById('clearPresetBtn');
+
+            function setPreset(preset) {
+                if (!presetInput) return;
+                presetInput.value = preset;
+                if (form) form.submit();
+            }
+
+            presetButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    setPreset(btn.getAttribute('data-preset'));
+                });
+            });
+
+            if (clearPresetBtn) {
+                clearPresetBtn.addEventListener('click', function () {
+                    if (!presetInput) return;
+                    presetInput.value = '';
+                    if (form) form.submit();
+                });
+            }
+        })();
+
         function formatRupiah(value) {
             return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
         }
