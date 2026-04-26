@@ -340,18 +340,6 @@ class DashboardController extends Controller
         $selectedPreset = $request->get('preset_periode');
         $periodeMulai = $request->get('periode_mulai');
         $periodeSelesai = $request->get('periode_selesai');
-        $selectedBulan = $request->get('bulan');
-        $selectedTahun = $request->get('tahun');
-
-        $selectedBulan = is_numeric($selectedBulan) ? (int) $selectedBulan : null;
-        if (!$selectedBulan || $selectedBulan < 1 || $selectedBulan > 12) {
-            $selectedBulan = null;
-        }
-
-        $selectedTahun = is_numeric($selectedTahun) ? (int) $selectedTahun : null;
-        if (!$selectedTahun || $selectedTahun < 2000 || $selectedTahun > 2100) {
-            $selectedTahun = null;
-        }
 
         if (in_array($selectedPreset, ['bulan_ini', '3_bulan', '1_tahun'], true)) {
             if ($selectedPreset === 'bulan_ini') {
@@ -382,8 +370,6 @@ class DashboardController extends Controller
             $selectedSiswaId,
             $selectedKelasId,
             $selectedStatus,
-            $selectedBulan,
-            $selectedTahun,
             $periodeMulai,
             $periodeSelesai,
             $startOfMonth,
@@ -403,14 +389,6 @@ class DashboardController extends Controller
                 $query->where('status', $selectedStatus);
             }
 
-            if ($selectedBulan) {
-                $query->whereMonth('tanggal_tagihan', $selectedBulan);
-            }
-
-            if ($selectedTahun) {
-                $query->whereYear('tanggal_tagihan', $selectedTahun);
-            }
-
             if ($periodeMulai && $periodeSelesai) {
                 $query->whereBetween('tanggal_tagihan', [$periodeMulai, $periodeSelesai]);
             } elseif ($periodeMulai) {
@@ -428,8 +406,6 @@ class DashboardController extends Controller
             $selectedSiswaId,
             $selectedKelasId,
             $selectedStatus,
-            $selectedBulan,
-            $selectedTahun,
             $periodeMulai,
             $periodeSelesai,
             $startOfMonth,
@@ -451,14 +427,6 @@ class DashboardController extends Controller
                 $query->whereHas('tagihan', function ($q) use ($selectedStatus) {
                     $q->where('status', $selectedStatus);
                 });
-            }
-
-            if ($selectedBulan) {
-                $query->whereMonth('tanggal_bayar', $selectedBulan);
-            }
-
-            if ($selectedTahun) {
-                $query->whereYear('tanggal_bayar', $selectedTahun);
             }
 
             if ($periodeMulai && $periodeSelesai) {
@@ -504,12 +472,6 @@ class DashboardController extends Controller
             if ($chartStartMonth->diffInMonths($chartEndMonth) >= 24) {
                 $chartStartMonth = $chartEndMonth->copy()->subMonths(23);
             }
-        } elseif ($selectedTahun && $selectedBulan) {
-            $chartStartMonth = Carbon::create($selectedTahun, $selectedBulan, 1)->startOfMonth();
-            $chartEndMonth = Carbon::create($selectedTahun, $selectedBulan, 1)->startOfMonth();
-        } elseif ($selectedTahun) {
-            $chartStartMonth = Carbon::create($selectedTahun, 1, 1)->startOfMonth();
-            $chartEndMonth = Carbon::create($selectedTahun, 12, 1)->startOfMonth();
         }
 
         $tagihanBulananRaw = $applyTagihanFilter(
@@ -667,33 +629,6 @@ class DashboardController extends Controller
         $totalSisaTagihanFiltered = (int) $applyTagihanFilter(Tagihan::query())->sum('sisa_tagihan');
         $totalPembayaranFiltered = (int) $applyPembayaranFilter(Pembayaran::query())->sum('nominal_bayar');
 
-        $tahunDariTagihan = Tagihan::query()
-            ->selectRaw('YEAR(tanggal_tagihan) as tahun')
-            ->whereNotNull('tanggal_tagihan')
-            ->distinct()
-            ->pluck('tahun')
-            ->map(fn($tahun) => (int) $tahun)
-            ->all();
-
-        $tahunDariPembayaran = Pembayaran::query()
-            ->selectRaw('YEAR(tanggal_bayar) as tahun')
-            ->whereNotNull('tanggal_bayar')
-            ->distinct()
-            ->pluck('tahun')
-            ->map(fn($tahun) => (int) $tahun)
-            ->all();
-
-        $filterTahunOptions = collect(array_merge($tahunDariTagihan, $tahunDariPembayaran))
-            ->filter()
-            ->unique()
-            ->sortDesc()
-            ->values()
-            ->all();
-
-        if (empty($filterTahunOptions)) {
-            $filterTahunOptions = [(int) now()->format('Y')];
-        }
-
         return [
             'totalTagihanBulanIni' => $totalTagihanBulanIni,
             'totalPembayaranMasuk' => $totalPembayaranMasuk,
@@ -707,7 +642,6 @@ class DashboardController extends Controller
             'progressPerJenis' => $progressPerJenis,
             'filterSiswa' => $filterSiswa,
             'filterKelas' => $filterKelas,
-            'filterTahunOptions' => $filterTahunOptions,
             'exportRows' => $exportRows,
             'exportPembayaranRows' => $exportPembayaranRows,
             'totalNominalTagihanFiltered' => $totalNominalTagihanFiltered,
@@ -720,8 +654,6 @@ class DashboardController extends Controller
                 'periode_selesai' => $periodeSelesai,
                 'status' => $selectedStatus,
                 'preset_periode' => $selectedPreset,
-                'bulan' => $selectedBulan,
-                'tahun' => $selectedTahun,
             ],
         ];
     }

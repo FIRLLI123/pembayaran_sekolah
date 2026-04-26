@@ -5,20 +5,6 @@
     $formatRupiah = function ($nominal) {
         return 'Rp ' . number_format((int) $nominal, 0, ',', '.');
     };
-    $namaBulan = [
-        1 => 'Januari',
-        2 => 'Februari',
-        3 => 'Maret',
-        4 => 'April',
-        5 => 'Mei',
-        6 => 'Juni',
-        7 => 'Juli',
-        8 => 'Agustus',
-        9 => 'September',
-        10 => 'Oktober',
-        11 => 'November',
-        12 => 'Desember',
-    ];
 @endphp
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -33,7 +19,7 @@
     <div class="card-body pb-2">
         <form method="GET" action="{{ route('dashboard') }}" id="dashboardFilterForm">
             <div class="form-row">
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-3">
                     <label class="small text-muted mb-1">Per Siswa</label>
                     <select name="siswa_id" id="filterSiswa" class="form-control">
                         <option value="">Semua Siswa</option>
@@ -60,28 +46,6 @@
                     </select>
                 </div>
                 <div class="form-group col-md-2">
-                    <label class="small text-muted mb-1">Bulan</label>
-                    <select name="bulan" class="form-control">
-                        <option value="">Semua Bulan</option>
-                        @foreach($namaBulan as $nomor => $label)
-                            <option value="{{ $nomor }}" {{ (string) ($filters['bulan'] ?? '') === (string) $nomor ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group col-md-2">
-                    <label class="small text-muted mb-1">Tahun</label>
-                    <select name="tahun" class="form-control">
-                        <option value="">Semua Tahun</option>
-                        @foreach($filterTahunOptions as $tahun)
-                            <option value="{{ $tahun }}" {{ (string) ($filters['tahun'] ?? '') === (string) $tahun ? 'selected' : '' }}>
-                                {{ $tahun }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group col-md-2">
                     <label class="small text-muted mb-1">Periode Mulai</label>
                     <input type="date" name="periode_mulai" class="form-control" value="{{ $filters['periode_mulai'] ?? '' }}">
                 </div>
@@ -98,8 +62,8 @@
                         <option value="belum_bayar" {{ ($filters['status'] ?? '') === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
                     </select>
                 </div>
-                <div class="form-group col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-block">Terapkan Filter</button>
+                <div class="form-group col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-block">Terapkan</button>
                 </div>
             </div>
             <input type="hidden" name="preset_periode" id="presetPeriodeInput" value="{{ $filters['preset_periode'] ?? '' }}">
