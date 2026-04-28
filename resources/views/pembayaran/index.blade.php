@@ -98,6 +98,7 @@
                         <th>Status</th>
                         <th>Keterangan</th>
                         <th class="text-center">Kwitansi</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -134,10 +135,19 @@
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
+                            <td class="text-center">
+                                <form action="{{ route('pembayaran.destroy', $item->id) }}" method="POST" class="d-inline js-delete-pembayaran-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Pembayaran">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="text-center text-muted">Data pembayaran belum tersedia.</td>
+                            <td colspan="12" class="text-center text-muted">Data pembayaran belum tersedia.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -192,6 +202,16 @@
         }
 
         filterSiswaByKelas();
+
+        var deleteForms = document.querySelectorAll('.js-delete-pembayaran-form');
+        deleteForms.forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                var ok = window.confirm('Yakin ingin menghapus pembayaran ini? Aksi ini tidak dapat dibatalkan.');
+                if (!ok) {
+                    event.preventDefault();
+                }
+            });
+        });
     })();
 </script>
 @endpush

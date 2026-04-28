@@ -62,7 +62,7 @@
                     {{-- Tampilkan foto existing --}}
                     @if($siswa->upload_foto)
                         <div class="mb-2">
-                            <img src="{{ asset('storage/' . $siswa->upload_foto) }}"
+                            <img src="{{ asset('public/storage/' . $siswa->upload_foto) }}"
                                  alt="Foto Siswa"
                                  id="foto-preview"
                                  style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ddd;">

@@ -20,6 +20,13 @@ class SiswaController extends Controller
             ->get();
 
         $query = Siswa::with('kelas');
+        $sortField = $request->get('sort', 'nama_siswa');
+        $sortDirection = strtolower((string) $request->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSortFields = ['nis', 'nama_siswa', 'kelas', 'jenis_kelamin', 'no_hp'];
+
+        if (!in_array($sortField, $allowedSortFields, true)) {
+            $sortField = 'nama_siswa';
+        }
 
         if ($request->search) {
             $query->where(function($q) use ($request) {
@@ -32,9 +39,20 @@ class SiswaController extends Controller
             $query->where('kelas_id', $request->kelas_id);
         }
 
-        $siswa = $query->latest()->paginate(10)->withQueryString();
+        if ($sortField === 'kelas') {
+            $query->orderBy(
+                Kelas::select('nama_kelas')
+                    ->whereColumn('kelas.id', 'siswa.kelas_id')
+                    ->limit(1),
+                $sortDirection
+            )->orderBy('nama_siswa', 'asc');
+        } else {
+            $query->orderBy($sortField, $sortDirection)->orderBy('nama_siswa', 'asc');
+        }
 
-        return view('siswa.index', compact('siswa', 'kelas', 'siswaSemua'));
+        $siswa = $query->paginate(10)->withQueryString();
+
+        return view('siswa.index', compact('siswa', 'kelas', 'siswaSemua', 'sortField', 'sortDirection'));
     }
 
     public function create()

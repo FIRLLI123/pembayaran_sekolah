@@ -598,7 +598,7 @@
     {{-- Avatar klik untuk ganti foto --}}
     <div class="avatar-wrapper" onclick="openFotoModal()">
         @if($siswa->upload_foto)
-            <img src="{{ asset('storage/' . $siswa->upload_foto) }}"
+            <img src="{{ asset('public/storage/' . $siswa->upload_foto) }}"
                  alt="Foto {{ $siswa->nama_siswa }}"
                  class="avatar-img"
                  id="avatarImg">

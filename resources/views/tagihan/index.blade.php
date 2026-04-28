@@ -521,11 +521,11 @@ function renderDetail(data) {
         // status badge
         let badge = '';
         if (item.status === 'belum_bayar') {
-            badge = '<span class="badge bg-danger">Belum</span>';
+            badge = '<span class="status-pill status-pill-belum">Belum Bayar</span>';
         } else if (item.status === 'cicil') {
-            badge = '<span class="badge bg-warning text-dark">Cicil</span>';
+            badge = '<span class="status-pill status-pill-cicil">Cicil</span>';
         } else {
-            badge = '<span class="badge bg-success">Lunas</span>';
+            badge = '<span class="status-pill status-pill-lunas">Lunas</span>';
         }
 
         // aksi
@@ -845,6 +845,36 @@ Swal.fire({
     #bulan_checklist .form-check {
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+.status-pill {
+    display: inline-block;
+    min-width: 90px;
+    padding: 0.38rem 0.7rem;
+    border-radius: 999px;
+    text-align: center;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+}
+
+.status-pill-belum {
+    background: #f8d7da;
+    color: #7f1d1d;
+    border: 1px solid #f1aeb5;
+}
+
+.status-pill-cicil {
+    background: #fff3cd;
+    color: #7a4b00;
+    border: 1px solid #ffe08a;
+}
+
+.status-pill-lunas {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #8ce7be;
 }
 </style>
 @endpush

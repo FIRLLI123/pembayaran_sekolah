@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembayaran/{id}/kwitansi', [PembayaranController::class, 'kwitansi'])->name('pembayaran.kwitansi');
     Route::post('/pembayaran/{id}/approve', [PembayaranController::class, 'approve'])->name('pembayaran.approve');
     Route::post('/pembayaran/{id}/reject', [PembayaranController::class, 'reject'])->name('pembayaran.reject');
+    Route::delete('/pembayaran/{id}', [PembayaranController::class, 'destroy'])->name('pembayaran.destroy');
     Route::resource('pembayaran', PembayaranController::class)->only(['index']);
 
     /* TAGIHAN — route spesifik HARUS sebelum route berparameter */

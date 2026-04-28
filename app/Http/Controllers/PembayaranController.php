@@ -9,6 +9,7 @@ use App\Models\Tagihan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class PembayaranController extends Controller
 {
@@ -237,6 +238,66 @@ class PembayaranController extends Controller
             'pdfBase64' => $pdfBase64,
             'filename' => $filename,
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $this->authorizeAdmin();
+
+        DB::beginTransaction();
+
+        try {
+            $pembayaran = Pembayaran::lockForUpdate()->findOrFail($id);
+            $tagihan = null;
+
+            if ($pembayaran->tagihan_id) {
+                $tagihan = Tagihan::lockForUpdate()->find($pembayaran->tagihan_id);
+            }
+
+            $uploadPath = $pembayaran->upload_foto;
+            $statusPembayaranDihapus = (string) $pembayaran->status;
+            $tagihanId = $pembayaran->tagihan_id;
+
+            $pembayaran->delete();
+
+            if ($tagihan && in_array($statusPembayaranDihapus, ['lunas', 'cicil'], true)) {
+                $totalDibayarValid = (int) Pembayaran::where('tagihan_id', $tagihanId)
+                    ->whereIn('status', ['lunas', 'cicil'])
+                    ->sum('nominal_bayar');
+
+                $sisaTagihan = (int) $tagihan->nominal_tagihan - $totalDibayarValid;
+                if ($sisaTagihan < 0) {
+                    $sisaTagihan = 0;
+                }
+
+                if ($sisaTagihan === (int) $tagihan->nominal_tagihan) {
+                    $statusTagihan = 'belum_bayar';
+                } elseif ($sisaTagihan === 0) {
+                    $statusTagihan = 'lunas';
+                } else {
+                    $statusTagihan = 'cicil';
+                }
+
+                $tagihan->sisa_tagihan = $sisaTagihan;
+                $tagihan->status = $statusTagihan;
+                $tagihan->updated_user = auth()->user()->name ?? 'admin';
+                $tagihan->save();
+            }
+
+            DB::commit();
+
+            if (!empty($uploadPath)) {
+                $absoluteUploadPath = public_path($uploadPath);
+                if (File::exists($absoluteUploadPath)) {
+                    File::delete($absoluteUploadPath);
+                }
+            }
+
+            return back()->with('success', 'Data pembayaran berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus pembayaran.');
+        }
     }
 
     private function authorizeAdmin(): void

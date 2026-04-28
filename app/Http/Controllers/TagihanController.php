@@ -174,6 +174,9 @@ public function bayar(Request $request, $id)
         }
 
         // ✅ Simpan ke tabel pembayaran
+        $sisaSetelahBayar = (int) $tagihan->sisa_tagihan - (int) $request->nominal_bayar;
+        $statusBaru = ($sisaSetelahBayar === 0) ? 'lunas' : 'cicil';
+
         Pembayaran::create([
             'tagihan_id' => $tagihan->id,
             'siswa_id' => $tagihan->siswa_id,
@@ -181,19 +184,14 @@ public function bayar(Request $request, $id)
             'tanggal_bayar' => now(),
             'nominal_bayar' => $request->nominal_bayar,
             'metode_bayar' => $request->metode_bayar,
-            'status' => 'lunas', // status transaksi, bukan tagihan
+            'status' => $statusBaru,
             'keterangan' => $request->keterangan,
             'created_user' => auth()->user()->name ?? 'admin'
         ]);
 
         // 🔄 Update tagihan
-        $tagihan->sisa_tagihan -= $request->nominal_bayar;
-
-        if ($tagihan->sisa_tagihan == 0) {
-            $tagihan->status = 'lunas';
-        } else {
-            $tagihan->status = 'cicil';
-        }
+        $tagihan->sisa_tagihan = $sisaSetelahBayar;
+        $tagihan->status = $statusBaru;
 
         $tagihan->save();
 

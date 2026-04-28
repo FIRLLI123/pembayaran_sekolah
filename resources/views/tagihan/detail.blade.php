@@ -82,11 +82,11 @@
                             <td>Rp {{ number_format($item->sisa_tagihan, 0, ',', '.') }}</td>
                             <td>
                                 @if($item->status == 'belum_bayar')
-                                    <span class="badge bg-danger">Belum</span>
+                                    <span class="status-pill status-pill-belum">Belum Bayar</span>
                                 @elseif($item->status == 'cicil')
-                                    <span class="badge bg-warning text-dark">Cicil</span>
+                                    <span class="status-pill status-pill-cicil">Cicil</span>
                                 @else
-                                    <span class="badge bg-success">Lunas</span>
+                                    <span class="status-pill status-pill-lunas">Lunas</span>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -163,6 +163,37 @@
 
 </div>
 @endsection
+
+@push('styles')
+<style>
+.status-pill {
+    display: inline-block;
+    min-width: 90px;
+    padding: 0.38rem 0.7rem;
+    border-radius: 999px;
+    text-align: center;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+}
+.status-pill-belum {
+    background: #f8d7da;
+    color: #7f1d1d;
+    border: 1px solid #f1aeb5;
+}
+.status-pill-cicil {
+    background: #fff3cd;
+    color: #7a4b00;
+    border: 1px solid #ffe08a;
+}
+.status-pill-lunas {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #8ce7be;
+}
+</style>
+@endpush
 
 @push('scripts')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">

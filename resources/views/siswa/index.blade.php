@@ -41,15 +41,56 @@
         <div class="card-body">
             <div class="table-responsive data-table-wrap">
                 <table class="table data-table align-middle mb-0">
+                    @php
+                        $currentSort = $sortField ?? request('sort', 'nama_siswa');
+                        $currentDirection = $sortDirection ?? request('direction', 'asc');
+
+                        $sortLink = function (string $field) use ($currentSort, $currentDirection) {
+                            $nextDirection = ($currentSort === $field && $currentDirection === 'asc') ? 'desc' : 'asc';
+                            return route('siswa.index', array_merge(request()->query(), [
+                                'sort' => $field,
+                                'direction' => $nextDirection,
+                            ]));
+                        };
+
+                        $sortIcon = function (string $field) use ($currentSort, $currentDirection) {
+                            if ($currentSort !== $field) {
+                                return '<span class="text-muted ml-1">↕</span>';
+                            }
+                            return $currentDirection === 'asc'
+                                ? '<span class="text-primary ml-1">↑</span>'
+                                : '<span class="text-primary ml-1">↓</span>';
+                        };
+                    @endphp
                     <thead>
                         <tr>
                             <th>No</th>
                             <th>Foto</th>
-                            <th>NIS</th>
-                            <th>Nama Siswa</th>
-                            <th>Kelas</th>
-                            <th>JK</th>
-                            <th>No HP</th>
+                            <th>
+                                <a href="{{ $sortLink('nis') }}" class="text-decoration-none text-reset">
+                                    NIS {!! $sortIcon('nis') !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortLink('nama_siswa') }}" class="text-decoration-none text-reset">
+                                    Nama Siswa {!! $sortIcon('nama_siswa') !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortLink('kelas') }}" class="text-decoration-none text-reset">
+                                    Kelas {!! $sortIcon('kelas') !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortLink('jenis_kelamin') }}" class="text-decoration-none text-reset">
+                                    JK {!! $sortIcon('jenis_kelamin') !!}
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortLink('no_hp') }}" class="text-decoration-none text-reset">
+                                    No HP {!! $sortIcon('no_hp') !!}
+                                </a>
+                            </th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -59,7 +100,7 @@
                             <td>{{ $siswa->firstItem() + $loop->index }}</td>
                             <td>
                                     @if($item->upload_foto)
-                                        <img src="{{ asset('storage/' . $item->upload_foto) }}"
+                                        <img src="{{ asset('public/storage/' . $item->upload_foto) }}"
                                             alt="Foto"
                                             style="width:40px; height:40px; object-fit:cover; border-radius:6px;">
                                     @else
