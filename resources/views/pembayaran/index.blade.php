@@ -154,7 +154,26 @@
             </table>
         </div>
 
-        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-md-center" style="gap: 8px;">
+            <form method="GET" action="{{ route('pembayaran.index') }}" class="d-flex align-items-center" style="gap: 8px;">
+                @foreach(request()->except(['per_page', 'page']) as $key => $value)
+                    @if(is_array($value))
+                        @foreach($value as $arrayValue)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $arrayValue }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+                <small class="text-muted">Tampilkan</small>
+                <select name="per_page" class="form-control form-control-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="10" {{ (string) ($perPage ?? request('per_page', '10')) === '10' ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ (string) ($perPage ?? request('per_page', '10')) === '20' ? 'selected' : '' }}>20</option>
+                    <option value="30" {{ (string) ($perPage ?? request('per_page', '10')) === '30' ? 'selected' : '' }}>30</option>
+                    <option value="all" {{ (string) ($perPage ?? request('per_page', '10')) === 'all' ? 'selected' : '' }}>Semua</option>
+                </select>
+                <small class="text-muted">data</small>
+            </form>
             <small class="text-muted mb-2 mb-md-0">
                 Menampilkan {{ $pembayaran->firstItem() ?? 0 }} - {{ $pembayaran->lastItem() ?? 0 }} dari {{ $pembayaran->total() }} data
             </small>

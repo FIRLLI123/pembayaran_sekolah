@@ -20,13 +20,23 @@ class PembayaranController extends Controller
         }
 
         $filters = $this->extractFilters($request);
+        $perPage = $request->get('per_page', '10');
+        $allowedPerPage = ['10', '20', '30', 'all'];
+        if (!in_array((string) $perPage, $allowedPerPage, true)) {
+            $perPage = '10';
+        }
 
-        $pembayaran = Pembayaran::with(['siswa', 'jenisPembayaran'])
+        $queryPembayaran = Pembayaran::with(['siswa', 'jenisPembayaran'])
             ->filter($filters)
             ->orderByDesc('tanggal_bayar')
-            ->orderByDesc('id')
-            ->paginate(10)
-            ->withQueryString();
+            ->orderByDesc('id');
+
+        if ($perPage === 'all') {
+            $totalData = (clone $queryPembayaran)->count();
+            $pembayaran = $queryPembayaran->paginate($totalData > 0 ? $totalData : 1)->withQueryString();
+        } else {
+            $pembayaran = $queryPembayaran->paginate((int) $perPage)->withQueryString();
+        }
 
         $filterSiswa = Siswa::with('kelas')
             ->orderBy('nama_siswa')
@@ -35,7 +45,7 @@ class PembayaranController extends Controller
         $filterKelas = Kelas::orderBy('nama_kelas')
             ->get(['id', 'nama_kelas']);
 
-        return view('pembayaran.index', compact('pembayaran', 'filterSiswa', 'filterKelas', 'filters'));
+        return view('pembayaran.index', compact('pembayaran', 'filterSiswa', 'filterKelas', 'filters', 'perPage'));
     }
 
     public function export(Request $request)
@@ -67,6 +77,11 @@ class PembayaranController extends Controller
     public function verifikasi(Request $request)
     {
         $this->authorizeAdmin();
+        $perPage = $request->get('per_page', '10');
+        $allowedPerPage = ['10', '20', '30', 'all'];
+        if (!in_array((string) $perPage, $allowedPerPage, true)) {
+            $perPage = '10';
+        }
 
         $query = Pembayaran::with(['siswa', 'jenisPembayaran', 'tagihan'])
             ->where('status', 'pending')
@@ -93,9 +108,14 @@ class PembayaranController extends Controller
             });
         }
 
-        $pending = $query->paginate(10)->withQueryString();
+        if ($perPage === 'all') {
+            $totalData = (clone $query)->count();
+            $pending = $query->paginate($totalData > 0 ? $totalData : 1)->withQueryString();
+        } else {
+            $pending = $query->paginate((int) $perPage)->withQueryString();
+        }
 
-        return view('pembayaran.verifikasi', compact('pending'));
+        return view('pembayaran.verifikasi', compact('pending', 'perPage'));
     }
 
     public function approve($id)

@@ -14,6 +14,12 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $kelas = Kelas::all();
+        $perPage = $request->get('per_page', '10');
+        $allowedPerPage = ['10', '20', '30', 'all'];
+        if (!in_array((string) $perPage, $allowedPerPage, true)) {
+            $perPage = '10';
+        }
+
         $siswaSemua = Siswa::with('kelas')
             ->orderBy('kelas_id')
             ->orderBy('nama_siswa')
@@ -50,9 +56,14 @@ class SiswaController extends Controller
             $query->orderBy($sortField, $sortDirection)->orderBy('nama_siswa', 'asc');
         }
 
-        $siswa = $query->paginate(10)->withQueryString();
+        if ($perPage === 'all') {
+            $totalData = (clone $query)->count();
+            $siswa = $query->paginate($totalData > 0 ? $totalData : 1)->withQueryString();
+        } else {
+            $siswa = $query->paginate((int) $perPage)->withQueryString();
+        }
 
-        return view('siswa.index', compact('siswa', 'kelas', 'siswaSemua', 'sortField', 'sortDirection'));
+        return view('siswa.index', compact('siswa', 'kelas', 'siswaSemua', 'sortField', 'sortDirection', 'perPage'));
     }
 
     public function create()

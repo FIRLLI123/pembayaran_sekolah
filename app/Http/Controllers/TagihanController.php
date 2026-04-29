@@ -27,6 +27,12 @@ public function index(Request $request)
         'kelas_id' => $request->get('kelas_id'),
     ];
 
+    $perPage = $request->get('per_page', '10');
+    $allowedPerPage = ['10', '20', '30', 'all'];
+    if (!in_array((string) $perPage, $allowedPerPage, true)) {
+        $perPage = '10';
+    }
+
     $query = \App\Models\Tagihan::with(['siswa', 'jenisPembayaran'])
         ->filter($filters)
         ->select('siswa_id',
@@ -35,7 +41,13 @@ public function index(Request $request)
         )
         ->groupBy('siswa_id');
 
-    $tagihan = $query->latest()->paginate(10)->withQueryString();
+    if ($perPage === 'all') {
+        // Query header memakai GROUP BY, jadi count() biasa bisa menghasilkan nilai yang keliru.
+        $totalData = DB::query()->fromSub(clone $query, 'tagihan_grouped')->count();
+        $tagihan = $query->latest()->paginate($totalData > 0 ? $totalData : 1)->withQueryString();
+    } else {
+        $tagihan = $query->latest()->paginate((int) $perPage)->withQueryString();
+    }
     $siswa   = Siswa::with('kelas')->orderBy('nama_siswa')->get();
     $kelas   = Kelas::orderBy('nama_kelas')->get(['id', 'nama_kelas']);
     $jenisPembayaranList = JenisPembayaran::orderBy('nama_pembayaran')->get(['id', 'nama_pembayaran']);
@@ -64,7 +76,7 @@ public function index(Request $request)
         $waLinks[$row->siswa_id] = $this->buildTagihanWhatsappLink($siswaRow, $detailBelumLunas);
     }
 
-    return view('tagihan.index', compact('tagihan', 'siswa', 'kelas', 'filters', 'sppDefaultNominal', 'waLinks', 'jenisPembayaranList'));
+    return view('tagihan.index', compact('tagihan', 'siswa', 'kelas', 'filters', 'sppDefaultNominal', 'waLinks', 'jenisPembayaranList', 'perPage'));
 }
 
 public function detail(Request $request, $siswaId)
@@ -74,6 +86,12 @@ public function detail(Request $request, $siswaId)
     }
 
     $siswa = Siswa::findOrFail($siswaId);
+
+    $perPage = $request->get('per_page', '10');
+    $allowedPerPage = ['10', '20', '30', 'all'];
+    if (!in_array((string) $perPage, $allowedPerPage, true)) {
+        $perPage = '10';
+    }
 
     $query = Tagihan::with(['jenisPembayaran'])
         ->where('siswa_id', $siswaId);
@@ -88,11 +106,20 @@ public function detail(Request $request, $siswaId)
         $query->where('periode_tahun', $request->tahun);
     }
 
-    $detail = $query->orderBy('periode_tahun')
-                    ->orderBy('periode_bulan')
-                    ->paginate(10);
+    if ($perPage === 'all') {
+        $totalData = (clone $query)->count();
+        $detail = $query->orderBy('periode_tahun')
+                        ->orderBy('periode_bulan')
+                        ->paginate($totalData > 0 ? $totalData : 1)
+                        ->withQueryString();
+    } else {
+        $detail = $query->orderBy('periode_tahun')
+                        ->orderBy('periode_bulan')
+                        ->paginate((int) $perPage)
+                        ->withQueryString();
+    }
 
-    return view('tagihan.detail', compact('siswa', 'detail'));
+    return view('tagihan.detail', compact('siswa', 'detail', 'perPage'));
 }
     //
 

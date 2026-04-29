@@ -140,11 +140,31 @@
                 </table>
             </div>
 
-            {{-- PAGINATION --}}
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 8px;">
+                <form method="GET" action="{{ route('siswa.index') }}" class="d-flex align-items-center" style="gap: 8px;">
+                    @foreach(request()->except(['per_page', 'page']) as $key => $value)
+                        @if(is_array($value))
+                            @foreach($value as $arrayValue)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $arrayValue }}">
+                            @endforeach
+                        @else
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <small class="text-muted">Tampilkan</small>
+                    <select name="per_page" class="form-control form-control-sm" style="width: auto;" onchange="this.form.submit()">
+                        <option value="10" {{ (string) ($perPage ?? request('per_page', '10')) === '10' ? 'selected' : '' }}>10</option>
+                        <option value="20" {{ (string) ($perPage ?? request('per_page', '10')) === '20' ? 'selected' : '' }}>20</option>
+                        <option value="30" {{ (string) ($perPage ?? request('per_page', '10')) === '30' ? 'selected' : '' }}>30</option>
+                        <option value="all" {{ (string) ($perPage ?? request('per_page', '10')) === 'all' ? 'selected' : '' }}>Semua</option>
+                    </select>
+                    <small class="text-muted">data</small>
+                </form>
+
                 @if ($siswa->hasPages())
-                <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 8px;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap: 8px;">
                     <small class="text-muted">
-                        Menampilkan {{ $siswa->firstItem() }}–{{ $siswa->lastItem() }}
+                        Menampilkan {{ $siswa->firstItem() }}-{{ $siswa->lastItem() }}
                         dari {{ $siswa->total() }} data
                     </small>
                     <div>
@@ -156,6 +176,7 @@
                     Menampilkan {{ $siswa->total() }} data
                 </small>
                 @endif
+            </div>
 
         </div>
     </div>

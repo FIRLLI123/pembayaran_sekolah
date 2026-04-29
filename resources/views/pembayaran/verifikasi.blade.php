@@ -44,7 +44,7 @@
                 <tbody>
                     @forelse($pending as $item)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $pending->firstItem() + $loop->index }}</td>
                             <td>{{ optional($item->tanggal_bayar)->format('d-m-Y') }}</td>
                             <td>{{ $item->siswa->nama_siswa ?? '-' }}</td>
                             <td>{{ $item->siswa->nis ?? '-' }}</td>
@@ -87,7 +87,26 @@
             </table>
         </div>
 
-        <div class="card-footer">
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap" style="gap: 8px;">
+            <form method="GET" action="{{ route('pembayaran.verifikasi') }}" class="d-flex align-items-center" style="gap: 8px;">
+                @foreach(request()->except(['per_page', 'page']) as $key => $value)
+                    @if(is_array($value))
+                        @foreach($value as $arrayValue)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $arrayValue }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+                <small class="text-muted">Tampilkan</small>
+                <select name="per_page" class="form-control form-control-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="10" {{ (string) ($perPage ?? request('per_page', '10')) === '10' ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ (string) ($perPage ?? request('per_page', '10')) === '20' ? 'selected' : '' }}>20</option>
+                    <option value="30" {{ (string) ($perPage ?? request('per_page', '10')) === '30' ? 'selected' : '' }}>30</option>
+                    <option value="all" {{ (string) ($perPage ?? request('per_page', '10')) === 'all' ? 'selected' : '' }}>Semua</option>
+                </select>
+                <small class="text-muted">data</small>
+            </form>
             {{ $pending->links() }}
         </div>
     </div>
