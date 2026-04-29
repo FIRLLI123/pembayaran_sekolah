@@ -270,7 +270,7 @@
             <table class="signatures">
                 <tr>
                     <td>
-                        <div class="sign-title">Pihak Orang Tua / Wali</div>
+                        <div class="sign-title">Pihak Orang Tua / Wali /Siswa</div>
                         <div class="sign-name">{{ $pembayaran->siswa->nama_siswa ?? '(............................)' }}</div>
                     </td>
                     <td>
