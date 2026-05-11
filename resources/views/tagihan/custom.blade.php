@@ -22,7 +22,7 @@
         <div class="row">
 
             {{-- LEFT --}}
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-3">
 
                 <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body">
@@ -72,16 +72,16 @@
             </div>
 
             {{-- RIGHT --}}
-            <div class="col-md-8">
+            <div class="col-12 col-md-8">
 
                 <div class="card shadow-sm border-0">
 
                     <div class="card-body">
 
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
                             <h6 class="fw-bold mb-0">👨‍🎓 Pilih Siswa</h6>
 
-                            <div>
+                            <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary"
                                         onclick="checkAll(true)">
                                     Pilih Semua
@@ -101,7 +101,7 @@
                         <div id="list_siswa" class="row" style="max-height:400px; overflow:auto;">
 
                             @foreach($siswa as $s)
-                                <div class="col-md-6 siswa-item mb-2"
+                                <div class="col-12 col-md-6 siswa-item mb-2"
                                      data-kelas="{{ $s->kelas_id }}"
                                      data-nama="{{ strtolower($s->nama_siswa) }}">
 

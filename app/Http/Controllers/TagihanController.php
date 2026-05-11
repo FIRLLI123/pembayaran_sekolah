@@ -187,7 +187,8 @@ public function bayar(Request $request, $id)
     $request->validate([
         'nominal_bayar' => 'required|numeric|min:1',
         'metode_bayar' => 'required|in:cash,transfer',
-        'keterangan' => 'nullable|string'
+        'keterangan' => 'nullable|string',
+        'upload_foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
     ]);
 
     DB::beginTransaction();
@@ -204,6 +205,19 @@ public function bayar(Request $request, $id)
         $sisaSetelahBayar = (int) $tagihan->sisa_tagihan - (int) $request->nominal_bayar;
         $statusBaru = ($sisaSetelahBayar === 0) ? 'lunas' : 'cicil';
 
+        // 📷 Handle upload struk pembayaran
+        $uploadPath = null;
+        if ($request->hasFile('upload_foto')) {
+            $folder = public_path('uploads/pembayaran');
+            if (!is_dir($folder)) {
+                mkdir($folder, 0755, true);
+            }
+            $file = $request->file('upload_foto');
+            $filename = 'bukti_' . now()->format('YmdHis') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move($folder, $filename);
+            $uploadPath = 'uploads/pembayaran/' . $filename;
+        }
+
         Pembayaran::create([
             'tagihan_id' => $tagihan->id,
             'siswa_id' => $tagihan->siswa_id,
@@ -213,6 +227,7 @@ public function bayar(Request $request, $id)
             'metode_bayar' => $request->metode_bayar,
             'status' => $statusBaru,
             'keterangan' => $request->keterangan,
+            'upload_foto' => $uploadPath,
             'created_user' => auth()->user()->name ?? 'admin'
         ]);
 

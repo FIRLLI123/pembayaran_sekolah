@@ -141,7 +141,7 @@
     {{-- MODAL BAYAR -- copy dari index, cukup modal bayar saja --}}
     <div class="modal fade" id="modalBayar" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" id="formBayar">
+        <form method="POST" id="formBayar" enctype="multipart/form-data">
           @csrf
           <div class="modal-content">
             <div class="modal-header">
@@ -171,6 +171,10 @@
               <div class="mb-2">
                 <label>Keterangan</label>
                 <textarea name="keterangan" class="form-control"></textarea>
+              </div>
+              <div class="mb-2">
+                <label>Upload Bukti Pembayaran (Opsional)</label>
+                <input type="file" name="upload_foto" class="form-control" accept="image/*">
               </div>
             </div>
             <div class="modal-footer">
@@ -248,7 +252,7 @@ function openBayarModal(id, sisa) {
     document.getElementById('nominal_bayar').value      = sisa;
     document.getElementById('nominal_view').value       = formatRupiah(sisa.toString());
     document.getElementById('error_nominal').classList.add('d-none');
-    new bootstrap.Modal(document.getElementById('modalBayar')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBayar')).show();
 }
 
 document.getElementById('formBayar').addEventListener('submit', function(e) {

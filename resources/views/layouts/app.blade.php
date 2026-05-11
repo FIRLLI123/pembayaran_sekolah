@@ -32,6 +32,13 @@
         @media (min-width: 768px) {
             .sidebar .nav-item .nav-link { padding: .75rem .85rem; }
         }
+        @media (max-width: 767.98px) {
+            .card-body { padding: 1rem !important; }
+            #content .container-fluid { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .navbar { padding: 0.5rem; }
+            .h3 { font-size: 1.3rem; margin-top: 10px; }
+            .btn { white-space: normal; }
+        }
     </style>
 
     <style>

@@ -22,9 +22,21 @@
             overflow: hidden;
         }
         .header {
+            position: relative;
             background: #0f172a;
             color: #fff;
             padding: 10px 12px;
+        }
+        .header-logo {
+            position: absolute;
+            top: 5px;
+            right: 12px;
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: #ffffff;
+            padding: 2px;
         }
         .header-title {
             font-size: 14px;
@@ -165,12 +177,16 @@
         $nominal = (int) $pembayaran->nominal_bayar;
         $tanggal = optional($pembayaran->tanggal_bayar)->translatedFormat('d F Y') ?? '-';
         $nomorKwitansi = 'KW-' . str_pad((string) $pembayaran->id, 5, '0', STR_PAD_LEFT);
+        $logoPath = public_path('assets/logo/logo.jpeg');
     @endphp
 
     <div class="kwitansi">
         <div class="header">
+            @if(file_exists($logoPath))
+                <img src="{{ $logoPath }}" alt="Logo Sekolah" class="header-logo">
+            @endif
             <p class="header-title">KWITANSI PEMBAYARAN</p>
-            <p class="header-subtitle">Bukti resmi transaksi pembayaran sekolah</p>
+            <p class="header-subtitle">Bukti resmi transaksi pembayaran MA AL IHSAN PONDOK GEDE</p>
         </div>
 
         <div class="content">
@@ -270,7 +286,7 @@
             <table class="signatures">
                 <tr>
                     <td>
-                        <div class="sign-title">Pihak Orang Tua / Wali /Siswa</div>
+                        <div class="sign-title">Pihak Orang Tua / Wali / Siswa</div>
                         <div class="sign-name">{{ $pembayaran->siswa->nama_siswa ?? '(............................)' }}</div>
                     </td>
                     <td>

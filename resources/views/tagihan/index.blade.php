@@ -9,7 +9,7 @@
     {{-- FILTER --}}
     <form method="GET" action="{{ route('tagihan.index') }}" class="mb-3">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-2">
                 <select name="siswa_id" class="form-control">
                     <option value="">Semua Siswa</option>
                     @foreach($siswa as $s)
@@ -20,7 +20,7 @@
                 </select>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-2">
                 <select name="kelas_id" class="form-control">
                     <option value="">Semua Kelas</option>
                     @foreach($kelas as $k)
@@ -31,30 +31,47 @@
                 </select>
             </div>
 
-            <div class="col-md-2">
-                <button class="btn btn-primary">Terapkan</button>
-                <a href="{{ route('tagihan.index') }}" class="btn btn-secondary" style="marginLeft:10px;">Reset</a>
-            </div>
+            <div class="col-12 col-md-4 mb-2">
+    <div class="d-flex flex-wrap">
+
+        <button class="btn btn-primary mr-2 mb-2">
+            Terapkan
+        </button>
+
+        <a href="{{ route('tagihan.index') }}"
+           class="btn btn-secondary mb-2">
+            Reset
+        </a>
+
+    </div>
+</div>
         </div>
     </form>
 
     {{-- 🔥 BUTTON GENERATE --}}
-    <button class="btn btn-success" onclick="openGenerateModal()">
-    ⚡ Generate SPP
-</button>
+<div class="d-flex flex-wrap mb-3">
 
-<button class="btn btn-danger" style="margin-left:10px;" onclick="openDeleteGenerateModal()">
-    Hapus Generated
-</button>
+    <button class="btn btn-success mr-2 mb-2"
+        onclick="openGenerateModal()">
+        ⚡ Generate SPP
+    </button>
 
-<button class="btn btn-primary" style="marginLeft:10px;"
-    onclick="openMultiBayarModal({{ $item->siswa_id ?? 0 }})">
-    💰 Bayar Banyak Bulan
-</button>
+    <button class="btn btn-danger mr-2 mb-2"
+        onclick="openDeleteGenerateModal()">
+        Hapus Generated
+    </button>
 
-<button class="btn btn-info" style="marginLeft:10px;"    onclick="window.location.href='{{ route('tagihan.custom') }}'">
-    🛠️ Generate Tagihan Custom
-</button>
+    <button class="btn btn-primary mr-2 mb-2"
+        onclick="openMultiBayarModal({{ $item->siswa_id ?? 0 }})">
+        💰 Bayar Banyak Bulan
+    </button>
+
+    <button class="btn btn-info mb-2"
+        onclick="window.location.href='{{ route('tagihan.custom') }}'">
+        🛠️ Generate Tagihan Custom
+    </button>
+
+</div>
 
     {{-- 🔥 TABLE --}}
     <div class="card data-table-card">
@@ -201,7 +218,7 @@
           <h5 class="modal-title fw-bold d-flex align-items-center gap-2 mb-0">
             <span style="color: #f59e0b;">⚡</span> Generate Tagihan SPP
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
         </div>
 
         {{-- Body --}}
@@ -266,7 +283,7 @@
 
         {{-- Footer --}}
         <div class="modal-footer px-4 py-3 border-top" style="background: #f8f9fa;">
-          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-success px-4 d-flex align-items-center gap-2">
             <span>⚡</span> Generate
           </button>
@@ -279,57 +296,60 @@
 
 
                 {{-- Modal Bayar Tagihan Satuan--}}
-    <div class="modal fade" id="modalBayar" tabindex="-1">
+<div class="modal fade" id="modalBayar" tabindex="-1">
   <div class="modal-dialog">
-    <form method="POST" id="formBayar">
+    <div class="modal-content">
+      <form method="POST" id="formBayar" enctype="multipart/form-data">
         @csrf
 
-        
-        <div class="modal-content">
-
-            
-            <div class="modal-header">
-                <h5 class="modal-title">Bayar Tagihan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-
-                <div class="mb-2">
-                    <label>Sisa Tagihan</label>
-                    <input type="text" id="sisa_tagihan_view" class="form-control" readonly>
-                </div>
-
-                <div class="mb-2">
-                    <label>Nominal Bayar</label>
-
-                    <input type="text" id="nominal_view" 
-       class="form-control" 
-       placeholder="Rp 0"
-       onkeyup="formatInputRupiah(this)">
-                    <input type="hidden" name="nominal_bayar" id="nominal_bayar">
-                </div>      
-
-                <div class="mb-2">
-                    <label>Metode Bayar</label>
-                    <select name="metode_bayar" class="form-control" required>
-                        <option value="cash">Cash</option>
-                        <option value="transfer">Transfer</option>
-                    </select>
-                </div>
-
-                <div class="mb-2">
-                    <label>Keterangan</label>
-                    <textarea name="keterangan" class="form-control"></textarea>
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="showLoading()">Bayar</button>
-            </div>
+        <div class="modal-header">
+            <h5 class="modal-title">Bayar Tagihan</h5>
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
         </div>
-    </form>
+
+        <div class="modal-body">
+
+            <div class="mb-2">
+                <label>Sisa Tagihan</label>
+                <input type="text" id="sisa_tagihan_view" class="form-control" readonly>
+            </div>
+
+            <div class="mb-2">
+                <label>Nominal Bayar</label>
+                <input type="text" id="nominal_view"
+                    class="form-control"
+                    placeholder="Rp 0"
+                    onkeyup="formatInputRupiah(this)">
+                <input type="hidden" name="nominal_bayar" id="nominal_bayar">
+            </div>
+
+            <div class="mb-2">
+                <label>Metode Bayar</label>
+                <select name="metode_bayar" class="form-control" required>
+                    <option value="cash">Cash</option>
+                    <option value="transfer">Transfer</option>
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>Keterangan</label>
+                <textarea name="keterangan" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-2">
+                <label>Upload Bukti Pembayaran <span class="text-muted">(Opsional)</span></label>
+                <input type="file" name="upload_foto" class="form-control" accept="image/*">
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary" onclick="showLoading()">Bayar</button>
+        </div>
+
+      </form>
+    </div>
   </div>
 </div>
 
@@ -342,7 +362,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Multi Bayar</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
 
             <div class="modal-body">
@@ -396,7 +416,7 @@
       <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
         <div class="modal-header px-4 py-3 border-bottom" style="background: #f8f9fa;">
           <h5 class="modal-title fw-bold mb-0">Hapus Generated Tagihan</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
         </div>
 
         <div class="modal-body px-4 py-4">
@@ -464,7 +484,7 @@
         </div>
 
         <div class="modal-footer px-4 py-3 border-top" style="background: #f8f9fa;">
-          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-danger px-4">Hapus Generated</button>
         </div>
       </div>
@@ -597,12 +617,12 @@ function openGenerateModal() {
     let tahun = document.getElementById('input_tahun').value;
     filterGenerateSiswaByKelas();
     loadStatusBulan(tahun);
-    new bootstrap.Modal(document.getElementById('modalGenerate')).show();
+    $('#modalGenerate').modal('show');
 }
 
 function openDeleteGenerateModal() {
     filterDeleteSiswaByKelas();
-    new bootstrap.Modal(document.getElementById('modalHapusGenerated')).show();
+    $('#modalHapusGenerated').modal('show');
 }
 
 function filterGenerateSiswaByKelas() {
@@ -726,8 +746,10 @@ function openBayarModal(id, sisa) {
     document.getElementById('nominal_bayar').value = sisa;
     document.getElementById('nominal_view').value = formatRupiah(sisa.toString());
 
-    let modal = new bootstrap.Modal(document.getElementById('modalBayar'));
-    modal.show();
+    // Reset file input saat buka modal baru
+    document.querySelector('#formBayar [name="upload_foto"]').value = '';
+
+    $('#modalBayar').modal('show');
 }
 
 // Load total tagihan saat siswa dipilih
@@ -774,8 +796,7 @@ document.getElementById('formMultiBayar').addEventListener('submit', function(e)
 
 // Fungsi ini hanya untuk buka modal
 function openMultiBayarModal() {
-    let modal = new bootstrap.Modal(document.getElementById('modalMultiBayar'));
-    modal.show();
+    $('#modalMultiBayar').modal('show');
 }
 
 
