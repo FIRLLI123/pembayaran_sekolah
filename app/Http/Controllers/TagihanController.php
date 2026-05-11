@@ -218,7 +218,7 @@ public function bayar(Request $request, $id)
             $uploadPath = 'uploads/pembayaran/' . $filename;
         }
 
-        Pembayaran::create([
+        $pembayaranBaru = Pembayaran::create([
             'tagihan_id' => $tagihan->id,
             'siswa_id' => $tagihan->siswa_id,
             'jenis_pembayaran_id' => $tagihan->jenis_pembayaran_id,
@@ -239,7 +239,10 @@ public function bayar(Request $request, $id)
 
         DB::commit();
 
-       return redirect()->back()->with('success', 'Pembayaran berhasil!');
+        return redirect()->back()
+            ->with('success', 'Pembayaran berhasil!')
+            ->with('pembayaran_baru_id', $pembayaranBaru->id)
+            ->with('pembayaran_baru_status', $statusBaru);
 } catch (\Exception $e) {
     return redirect()->back()->with('error', 'Pembayaran gagal!');
 }

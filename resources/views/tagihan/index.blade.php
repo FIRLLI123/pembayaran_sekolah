@@ -85,7 +85,7 @@
 @if(session('error'))
 <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
-                <table class="table data-table align-middle mb-0">
+                <table id="tabel-tagihan" class="table data-table align-middle mb-0">
     <thead>
         <tr>
             <th>No</th>
@@ -98,11 +98,12 @@
     <tbody>
         @forelse ($tagihan as $item)
         <tr>
-            <td>{{ $tagihan->firstItem() + $loop->index }}</td>
-            <td>{{ $item->siswa->nama_siswa ?? '-' }}</td>
-            <td>Rp {{ number_format($item->total_nominal, 0, ',', '.') }}</td>
-            <td>Rp {{ number_format($item->total_sisa, 0, ',', '.') }}</td>
-            <td class="text-center">
+            <td data-label="No">{{ $tagihan->firstItem() + $loop->index }}</td>
+            <td data-label="Siswa">{{ $item->siswa->nama_siswa ?? '-' }}</td>
+            <td data-label="Total Nominal">Rp {{ number_format($item->total_nominal, 0, ',', '.') }}</td>
+            <td data-label="Total Sisa">Rp {{ number_format($item->total_sisa, 0, ',', '.') }}</td>
+            <td data-label="Aksi" class="text-center">
+    <div class="d-flex justify-content-end align-items-center" style="gap:6px;">
     <button class="data-table-action-btn"
             onclick="bukaDetail({{ $item->siswa_id }}, '{{ $item->siswa->nama_siswa ?? '-' }}')"
             data-siswa-id="{{ $item->siswa_id }}"
@@ -114,8 +115,7 @@
            href="{{ $waLinks[$item->siswa_id] }}"
            target="_blank"
            rel="noopener"
-           title="Kirim WhatsApp"
-           style="margin-left:6px;">
+           title="Kirim WhatsApp">
             <i class="fab fa-whatsapp"></i>
         </a>
     @else
@@ -123,10 +123,11 @@
                 type="button"
                 disabled
                 title="Nomor HP siswa belum tersedia"
-                style="margin-left:6px; opacity:.5;">
+                style="opacity:.4;">
             <i class="fab fa-whatsapp"></i>
         </button>
     @endif
+    </div>
 </td>
         </tr>
         @empty
@@ -184,7 +185,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table data-table align-middle mb-0">
+                <table id="tabel-detail" class="table data-table align-middle mb-0">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -581,13 +582,13 @@ function renderDetail(data) {
 
         html += `
             <tr>
-                <td>${index + 1}</td>
-                <td>${item.jenis_pembayaran?.nama_pembayaran ?? '-'}</td>
-                <td>${periode}</td>
-                <td>Rp ${formatAngka(item.nominal_tagihan)}</td>
-                <td>Rp ${formatAngka(item.sisa_tagihan)}</td>
-                <td>${badge}</td>
-                <td class="text-center">${aksi}</td>
+                <td data-label="No">${index + 1}</td>
+                <td data-label="Jenis">${item.jenis_pembayaran?.nama_pembayaran ?? '-'}</td>
+                <td data-label="Periode">${periode}</td>
+                <td data-label="Nominal">Rp ${formatAngka(item.nominal_tagihan)}</td>
+                <td data-label="Sisa">Rp ${formatAngka(item.sisa_tagihan)}</td>
+                <td data-label="Status">${badge}</td>
+                <td data-label="Aksi" class="text-center">${aksi}</td>
             </tr>
         `;
     });
@@ -849,12 +850,30 @@ function formatMultiRupiah(el) {
 {{-- ✅ ALERT SUCCESS --}}
 @if(session('success'))
 <script>
+@if(session('pembayaran_baru_id') && in_array(session('pembayaran_baru_status'), ['lunas', 'cicil']))
+Swal.fire({
+    icon: 'success',
+    title: 'Pembayaran Berhasil! ✅',
+    text: '{{ session('success') }}',
+    confirmButtonColor: '#6c63ff',
+    confirmButtonText: 'Tutup',
+    showDenyButton: true,
+    denyButtonColor: '#e53e3e',
+    denyButtonText: '🖨️ Lihat Kwitansi',
+    reverseButtons: true,
+}).then((result) => {
+    if (result.isDenied) {
+        window.open('{{ route('pembayaran.kwitansi', session('pembayaran_baru_id', 0)) }}', '_blank');
+    }
+});
+@else
 Swal.fire({
     icon: 'success',
     title: 'Berhasil ✅',
     text: '{{ session('success') }}',
     confirmButtonColor: '#6c63ff'
 });
+@endif
 </script>
 @endif
 
@@ -885,39 +904,144 @@ Swal.fire({
     tr.row-aktif { background-color: #E6F1FB !important; }
 
     #bulan_checklist .form-check {
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
 
-.status-pill {
-    display: inline-block;
-    min-width: 90px;
-    padding: 0.38rem 0.7rem;
-    border-radius: 999px;
-    text-align: center;
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    line-height: 1.1;
-}
+    /* ===== STATUS PILL ===== */
+    .status-pill {
+        display: inline-block;
+        min-width: 80px;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+    .status-pill-belum { background:#f8d7da; color:#7f1d1d; border:1px solid #f1aeb5; }
+    .status-pill-cicil  { background:#fff3cd; color:#7a4b00; border:1px solid #ffe08a; }
+    .status-pill-lunas  { background:#d1fae5; color:#065f46; border:1px solid #8ce7be; }
 
-.status-pill-belum {
-    background: #f8d7da;
-    color: #7f1d1d;
-    border: 1px solid #f1aeb5;
-}
+    /* ===== ACTION BUTTON ===== */
+    .data-table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #374151;
+        transition: background .15s, color .15s;
+    }
+    .data-table-action-btn:hover { background:#f3f4f6; }
+    .data-table-action-edit { color: #16a34a; border-color: #86efac; }
 
-.status-pill-cicil {
-    background: #fff3cd;
-    color: #7a4b00;
-    border: 1px solid #ffe08a;
-}
+    /* ===== MOBILE-ONLY: tabel utama jadi card list ===== */
+    @media (max-width: 767.98px) {
 
-.status-pill-lunas {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #8ce7be;
-}
+        /* Sembunyikan thead tabel utama */
+        #tabel-tagihan thead { display: none; }
+
+        /* Setiap baris jadi card */
+        #tabel-tagihan tbody tr {
+            display: block;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        #tabel-tagihan tbody tr td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border: none;
+            font-size: 0.875rem;
+        }
+        #tabel-tagihan tbody tr td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+        /* Kolom No & Aksi */
+        #tabel-tagihan tbody tr td[data-label="No"] { display: none; }
+        #tabel-tagihan tbody tr td[data-label="Aksi"] {
+            justify-content: flex-end;
+            padding-top: 8px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 4px;
+        }
+        #tabel-tagihan tbody tr td[data-label="Aksi"]::before { display: none; }
+
+        /* ===== Detail tabel: card list ===== */
+        #tabel-detail thead { display: none; }
+        #tabel-detail tbody tr {
+            display: block;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        #tabel-detail tbody tr td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border: none;
+            font-size: 0.875rem;
+        }
+        #tabel-detail tbody tr td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            flex-shrink: 0;
+            margin-right: 8px;
+        }
+        #tabel-detail tbody tr td[data-label="No"] { display: none; }
+        #tabel-detail tbody tr td[data-label="Aksi"] {
+            justify-content: flex-end;
+            padding-top: 8px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 4px;
+        }
+        #tabel-detail tbody tr td[data-label="Aksi"]::before { display: none; }
+
+        /* Modal ukuran penuh di HP */
+        .modal-dialog { margin: 8px; }
+        .modal-dialog.modal-lg { max-width: 100%; }
+
+        /* Action btn lebih besar untuk sentuh */
+        .data-table-action-btn { width: 40px; height: 40px; font-size: 1rem; }
+
+        /* Tombol di filter & action bar */
+        .btn { font-size: 0.875rem; padding: .45rem .8rem; }
+
+        /* Detail panel header */
+        #detail_panel .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 8px;
+        }
+    }
 </style>
 @endpush
 
