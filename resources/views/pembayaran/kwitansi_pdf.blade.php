@@ -162,6 +162,20 @@
             font-weight: 700;
             font-size: 9px;
         }
+        .sign-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .cap-lunas {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-18deg);
+            width: 90px;
+            opacity: 0.88;
+            z-index: 10;
+        }
         .footer {
             border-top: 1px solid #cbd5e1;
             margin-top: 8px;
@@ -178,6 +192,7 @@
         $tanggal = optional($pembayaran->tanggal_bayar)->translatedFormat('d F Y') ?? '-';
         $nomorKwitansi = 'KW-' . str_pad((string) $pembayaran->id, 5, '0', STR_PAD_LEFT);
         $logoPath = public_path('assets/logo/logo.jpeg');
+        $lunasPath = public_path('assets/logo/lunas.png');
     @endphp
 
     <div class="kwitansi">
@@ -286,8 +301,13 @@
             <table class="signatures">
                 <tr>
                     <td>
-                        <div class="sign-title">Pihak Orang Tua / Wali / Siswa</div>
-                        <div class="sign-name">{{ $pembayaran->siswa->nama_siswa ?? '(............................)' }}</div>
+                        <div class="sign-wrapper">
+                            @if($pembayaran->status === 'lunas' && file_exists($lunasPath))
+                                <img src="{{ $lunasPath }}" alt="Cap Lunas" class="cap-lunas">
+                            @endif
+                            <div class="sign-title">Pihak Orang Tua / Wali / Siswa</div>
+                            <div class="sign-name">{{ $pembayaran->siswa->nama_siswa ?? '(............................)' }}</div>
+                        </div>
                     </td>
                     <td>
                         <div class="sign-title">Petugas / Admin</div>
