@@ -91,6 +91,21 @@
     </div>
 </div>
 
+{{-- SHORTCUT QUICK PAY (mencolok di mobile) --}}
+<div class="d-block mb-4">
+    <a href="{{ route('quick-pay.index') }}" class="text-decoration-none">
+        <div class="card shadow" style="background:linear-gradient(135deg,#e74c3c,#c0392b); border-radius:14px; border:0;">
+            <div class="card-body py-3 px-4 d-flex align-items-center justify-content-between">
+                <div class="text-white">
+                    <div class="font-weight-bold" style="font-size:1.05rem;">⚡ Bayar Tagihan Cepat</div>
+                    <small style="opacity:.85;">Pilih siswa → bayar → download kwitansi</small>
+                </div>
+                <i class="fas fa-chevron-right text-white" style="font-size:1.4rem; opacity:.7;"></i>
+            </div>
+        </div>
+    </a>
+</div>
+
 <div class="row">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-primary shadow h-100 py-2">

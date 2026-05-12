@@ -8,6 +8,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\OrtuController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuickPayController;
 use App\Http\Controllers\RiwayatKelasSiswaController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanController;
@@ -78,5 +79,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/tagihan/multi-bayar/{siswa}', [TagihanController::class, 'multiBayar'])->name('tagihan.multiBayar');
     Route::post('/tagihan/hapus-generated', [TagihanController::class, 'hapusGenerated'])->name('tagihan.hapusGenerated');
     Route::post('/generate-spp', [TagihanController::class, 'generateSPP'])->name('generate.spp');
+
+    /* QUICK PAY */
+    Route::get('/quick-pay', [QuickPayController::class, 'index'])->name('quick-pay.index');
+    Route::post('/quick-pay/{id}/bayar', [QuickPayController::class, 'bayar'])->name('quick-pay.bayar');
 
 });

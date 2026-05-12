@@ -164,6 +164,12 @@
                 Tagihan
             </a>
 
+            <a class="collapse-item {{ request()->routeIs('quick-pay.index') ? 'active' : '' }}"
+               href="{{ route('quick-pay.index') }}"
+               style="color:#e74c3c; font-weight:600;">
+                ⚡ Bayar Cepat
+            </a>
+
         </div>
     </div>
 </li>
