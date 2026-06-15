@@ -14,6 +14,8 @@ class JenisPembayaran extends Model
     protected $fillable = [
         'nama_pembayaran',
         'nominal_default',
+        'tipe',
+        'periode',
         'keterangan',
         'created_user',
         'updated_user'
