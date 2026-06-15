@@ -9,7 +9,6 @@ use App\Models\Pembayaran;
 use App\Models\Siswa;
 use App\Models\Tagihan;
 use App\Models\RiwayatKelasSiswa;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -19,11 +18,12 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ReportController extends Controller
 {
-    public function exportExcel(Request $request): JsonResponse
+    public function exportExcel(Request $request): StreamedResponse|\Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
             'periode_mulai' => 'required|date_format:Y-m-d',
@@ -596,20 +596,32 @@ class ReportController extends Controller
             }
 
             $filename = 'laporan-keuangan-' . $periodeMulai . '_sd_' . $periodeSelesai . '-' . time() . '.xlsx';
-            $filePath = storage_path('app/public/exports/' . $filename);
+            $filePath = storage_path('app/exports-tmp/' . $filename);
+
+            // Ensure temp directory exists
+            if (!is_dir(dirname($filePath))) {
+                mkdir(dirname($filePath), 0755, true);
+            }
 
             $writer = new Xlsx($spreadsheet);
             $writer->save($filePath);
 
-            $downloadUrl = asset('storage/exports/' . $filename);
-
-            return response()->json([
-                'message' => 'File laporan berhasil dibuat.',
-                'data' => [
-                    'filename' => $filename,
-                    'download_url' => $downloadUrl,
-                ],
+            // Stream the file directly to the client, then delete it
+            return response()->streamDownload(function () use ($filePath) {
+                $handle = fopen($filePath, 'rb');
+                while (!feof($handle)) {
+                    echo fread($handle, 8192);
+                    ob_flush();
+                    flush();
+                }
+                fclose($handle);
+                @unlink($filePath);
+            }, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
             ]);
+
         } catch (Throwable $e) {
             Log::error('Mobile report export failed', [
                 'message' => $e->getMessage(),
