@@ -584,18 +584,9 @@ class ReportController extends Controller
             }
 
             // Generate final file
-            Storage::disk('public')->makeDirectory('exports');
-
-            $files = Storage::disk('public')->files('exports');
-            foreach ($files as $f) {
-                $time = Storage::disk('public')->lastModified($f);
-                if (time() - $time > 86400) {
-                    Storage::disk('public')->delete($f);
-                }
-            }
-
             $filename = 'laporan-keuangan-' . $periodeMulai . '_sd_' . $periodeSelesai . '-' . time() . '.xlsx';
             $filePath = storage_path('app/exports-tmp/' . $filename);
+
 
             // Ensure temp directory exists
             if (!is_dir(dirname($filePath))) {
