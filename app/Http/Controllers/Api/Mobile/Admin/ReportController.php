@@ -10,7 +10,7 @@ use App\Models\Siswa;
 use App\Models\Tagihan;
 use App\Models\RiwayatKelasSiswa;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -18,12 +18,11 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ReportController extends Controller
 {
-    public function exportExcel(Request $request): StreamedResponse|\Illuminate\Http\JsonResponse
+    public function exportExcel(Request $request): Response|\Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
             'periode_mulai' => 'required|date_format:Y-m-d',
@@ -606,21 +605,25 @@ class ReportController extends Controller
             $writer = new Xlsx($spreadsheet);
             $writer->save($filePath);
 
-            // Stream the file directly to the client, then delete it
-            return response()->streamDownload(function () use ($filePath) {
-                $handle = fopen($filePath, 'rb');
-                while (!feof($handle)) {
-                    echo fread($handle, 8192);
-                    ob_flush();
-                    flush();
-                }
-                fclose($handle);
-                @unlink($filePath);
-            }, $filename, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            // Read the file into memory, delete temp file, return clean binary response.
+            // Using file_get_contents + response() avoids ob_flush/streamDownload
+            // output-buffer conflicts that corrupt binary data on production servers.
+            $fileContent = file_get_contents($filePath);
+            @unlink($filePath);
+
+            // Bersihkan semua output buffer yang mungkin bocor
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            return response($fileContent, 200, [
+                'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Content-Length'      => strlen($fileContent),
+                'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+                'Pragma'              => 'no-cache',
             ]);
+
 
         } catch (Throwable $e) {
             Log::error('Mobile report export failed', [
